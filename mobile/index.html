@@ -40,8 +40,8 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--texto);
 }
 .login-bg{
   position:absolute;inset:0;
-  background:url('https://images.unsplash.com/photo-1486325212027-8081e485255e?w=800&q=70&fit=crop') center/cover;
-  opacity:.18
+  background:linear-gradient(135deg,#0c1a3d 0%,#1e1b4b 50%,#0f172a 100%);
+  opacity:1
 }
 .login-inner{
   position:relative;z-index:1;width:100%;max-width:400px;
@@ -937,32 +937,30 @@ html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--texto);
 const BASE_URL = 'https://ronda.prointegraserv.com.br';
 const API      = BASE_URL + '/api/v1';
 
-/* ─── USUÁRIOS DO SISTEMA ─────────────────────────────── */
+/* ─── PERFIS LOCAIS (sem senhas — auth via /api/auth) ─── */
+function avatarUrl(nome,cor='1e40af'){
+  return 'https://ui-avatars.com/api/?name='+encodeURIComponent(nome)+'&background='+cor+'&color=fff&size=120&bold=true';
+}
 const USUARIOS = {
   'ronda@prointegraserv.com.br':{
-    senha:'ronda2025', nome:'Fiscal de Ronda', cargo:'Fiscal de Piso', perfil:'fiscal',
-    foto:'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=120&h=120&fit=crop&crop=face',
-    badge:'badge-fiscal', label:'Fiscal'
+    nome:'Fiscal de Ronda', cargo:'Fiscal de Piso', perfil:'fiscal',
+    get foto(){return avatarUrl(this.nome,'1e40af');}, badge:'badge-fiscal', label:'Fiscal'
   },
   'limpeza@prointegraserv.com.br':{
-    senha:'limpeza2025', nome:'ASG Limpeza', cargo:'Auxiliar de Serviços Gerais', perfil:'fiscal',
-    foto:'https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=120&h=120&fit=crop&crop=face',
-    badge:'badge-asg', label:'ASG'
+    nome:'ASG Limpeza', cargo:'Auxiliar de Serviços Gerais', perfil:'fiscal',
+    get foto(){return avatarUrl(this.nome,'065f46');}, badge:'badge-asg', label:'ASG'
   },
   'sindico@prointegraserv.com.br':{
-    senha:'sindico2025', nome:'Síndico', cargo:'Síndico do Condomínio', perfil:'admin',
-    foto:'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=120&h=120&fit=crop&crop=face',
-    badge:'badge-admin', label:'Admin'
+    nome:'Síndico', cargo:'Síndico do Condomínio', perfil:'admin',
+    get foto(){return avatarUrl(this.nome,'92400e');}, badge:'badge-admin', label:'Admin'
   },
   'administradora@prointegraserv.com.br':{
-    senha:'admin2025', nome:'Administradora', cargo:'Administradora', perfil:'admin',
-    foto:'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=120&h=120&fit=crop&crop=face',
-    badge:'badge-admin', label:'Admin'
+    nome:'Administradora', cargo:'Administradora', perfil:'admin',
+    get foto(){return avatarUrl(this.nome,'92400e');}, badge:'badge-admin', label:'Admin'
   },
   'iran@prointegraserv.com.br':{
-    senha:'iran2025', nome:'Iran Feliciano', cargo:'Super Administrador', perfil:'superadmin',
-    foto:'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=120&h=120&fit=crop&crop=face',
-    badge:'badge-super', label:'Super'
+    nome:'Iran Feliciano', cargo:'Super Administrador', perfil:'superadmin',
+    get foto(){return avatarUrl(this.nome,'7c3aed');}, badge:'badge-super', label:'Super'
   },
 };
 
@@ -971,105 +969,80 @@ const TODOS_ITENS = {
   limpeza:{titulo:'LIMPEZA',
     HORARIA:[
       {id:'limp_chao_h', label:'CORREDORES', ok:'check','nok':'x', tokOk:'LIMPO',tokNok:'SUJO',
-       foto:'https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=500&h=260&fit=crop',
        instrucao:'Verifique o piso dos corredores de circulação principal'},
       {id:'limp_hall_h', label:'HALL / RECEPÇÃO',ok:'check',nok:'x',tokOk:'LIMPO',tokNok:'SUJO',
-       foto:'https://images.unsplash.com/photo-1497366216548-37526070297c?w=500&h=260&fit=crop',
        instrucao:'Verifique o hall de entrada e área da recepção'},
     ],
     DIARIA:[
       {id:'limp_chao',    label:'PISO — GERAL',   ok:'check',nok:'x',tokOk:'LIMPO', tokNok:'SUJO',
-       foto:'https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=500&h=260&fit=crop',
        instrucao:'Verifique todos os pavimentos do condomínio'},
       {id:'limp_lixeira', label:'LIXEIRAS',        ok:'check',nok:'x',tokOk:'VAZIAS',tokNok:'CHEIAS',
-       foto:'https://images.unsplash.com/photo-1605600659908-0ef719419d41?w=500&h=260&fit=crop',
        instrucao:'Verifique se as lixeiras estão transbordando'},
       {id:'limp_banheiro',label:'BANHEIROS',       ok:'check',nok:'x',tokOk:'LIMPOS',tokNok:'PROBLEMA',
-       foto:'https://images.unsplash.com/photo-1552321554-5fefe8c9ef14?w=500&h=260&fit=crop',
        instrucao:'Papel, sabonete, privadas, pia e piso'},
     ],
     SEMANAL:[
       {id:'limp_vidros',  label:'VIDROS E JANELAS',ok:'check',nok:'x',tokOk:'LIMPOS',tokNok:'SUJOS',
-       foto:'https://images.unsplash.com/photo-1486325212027-8081e485255e?w=500&h=260&fit=crop',
        instrucao:'Vidros externos e esquadrias'},
       {id:'limp_estacion',label:'ESTACIONAMENTO',  ok:'check',nok:'x',tokOk:'LIMPO', tokNok:'SUJO',
-       foto:'https://images.unsplash.com/photo-1558618047-f4e70e31cc8b?w=500&h=260&fit=crop',
        instrucao:'Varredura da garagem e rampa de acesso'},
     ],
     MENSAL:[
       {id:'limp_calhas',label:'CALHAS E CANALETAS',ok:'check',nok:'x',tokOk:'LIMPAS',tokNok:'ENTUPIDAS',
-       foto:'https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=500&h=260&fit=crop',
        instrucao:'Verifique calhas de telhado e canaletas de drenagem',fotoOk:true},
     ],
   },
   seguranca:{titulo:'SEGURANÇA',
     HORARIA:[
       {id:'seg_porta_h',   label:'PORTAS E PORTÕES',ok:'lock',nok:'unlock',tokOk:'TRANCADO',tokNok:'ABERTO/DANIF.',
-       foto:'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=500&h=260&fit=crop',
        instrucao:'Teste todas as portas e portões do percurso'},
       {id:'seg_garagem_h', label:'GARAGEM',          ok:'check',nok:'alert',tokOk:'LIVRE',  tokNok:'PROBLEMA',
-       foto:'https://images.unsplash.com/photo-1558618047-f4e70e31cc8b?w=500&h=260&fit=crop',
        instrucao:'Cancelas, barreiras e acesso da garagem'},
       {id:'seg_portaria_h',label:'PORTARIA',          ok:'check',nok:'alert',tokOk:'GUARNECIDA',tokNok:'PROBLEMA',
-       foto:'https://images.unsplash.com/photo-1497366216548-37526070297c?w=500&h=260&fit=crop',
        instrucao:'Confirme que o posto da portaria está guarnecido'},
     ],
     DIARIA:[
       {id:'seg_camera',  label:'CÂMERAS (CFTV)',  ok:'check',nok:'x',tokOk:'FUNCIONANDO',tokNok:'PROBLEMA',
-       foto:'https://images.unsplash.com/photo-1558618047-f4e70e31cc8b?w=500&h=260&fit=crop',
        instrucao:'Verifique o monitor do CFTV — todas as câmeras'},
       {id:'seg_ilum_ext',label:'ILUMINAÇÃO EXTERNA',ok:'check',nok:'x',tokOk:'ACESA',tokNok:'APAGADA',
-       foto:'https://images.unsplash.com/photo-1565814329452-e1efa11c5b89?w=500&h=260&fit=crop',
        instrucao:'Lâmpadas de fachada, estacionamento e jardins'},
     ],
     SEMANAL:[
       {id:'seg_interfone',label:'INTERFONE E RÁDIO',ok:'check',nok:'x',tokOk:'FUNCIONANDO',tokNok:'PROBLEMA',
-       foto:'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=500&h=260&fit=crop',
        instrucao:'Teste o interfone de cada andar e o rádio da portaria'},
       {id:'seg_alarme',  label:'CENTRAL DE ALARME',ok:'check',nok:'x',tokOk:'ARMADA/OK',tokNok:'COM FALHA',
-       foto:'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=500&h=260&fit=crop',
        instrucao:'Painel da central — sem zonas em fault'},
     ],
     MENSAL:[
       {id:'seg_cftv_grav',label:'GRAVAÇÃO DO CFTV',ok:'check',nok:'x',tokOk:'GRAVANDO',tokNok:'SEM GRAVAÇÃO',
-       foto:'https://images.unsplash.com/photo-1558618047-f4e70e31cc8b?w=500&h=260&fit=crop',
        instrucao:'Verifique no DVR/NVR se todas as câmeras estão gravando',fotoOk:true},
     ],
   },
   estrutura:{titulo:'ESTRUTURA',
     HORARIA:[
       {id:'est_elev_h',label:'ELEVADORES',ok:'check',nok:'x',tokOk:'FUNCIONANDO',tokNok:'PARADO',
-       foto:'https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=500&h=260&fit=crop',
        instrucao:'Chame os elevadores — devem responder normalmente'},
     ],
     DIARIA:[
       {id:'est_lampada', label:'LÂMPADAS INTERNAS',ok:'check',nok:'x',tokOk:'ACESAS',tokNok:'QUEIMADAS',
-       foto:'https://images.unsplash.com/photo-1565814329452-e1efa11c5b89?w=500&h=260&fit=crop',
        instrucao:'Luminárias dos corredores, halls e escadas'},
       {id:'est_elevador',label:'ELEVADORES — INSPEÇÃO',ok:'check',nok:'x',tokOk:'FUNCIONANDO',tokNok:'PARADO',
-       foto:'https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=500&h=260&fit=crop',
        instrucao:'Operação, alarme sonoro e iluminação da cabine'},
     ],
     SEMANAL:[
       {id:'est_vidro',    label:'VIDROS E FACHADA',  ok:'check',nok:'x',tokOk:'INTEIROS',tokNok:'QUEBRADOS',
-       foto:'https://images.unsplash.com/photo-1486325212027-8081e485255e?w=500&h=260&fit=crop',
        instrucao:'Vidros, esquadrias e revestimento da fachada'},
       {id:'est_vazamento',label:'VAZAMENTOS',          ok:'check',nok:'x',tokOk:'SECO',  tokNok:'VAZANDO',
-       foto:'https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=500&h=260&fit=crop',
        instrucao:'Tetos, paredes e casa de bombas por sinais de umidade'},
       {id:'est_escadas',  label:'ESCADAS E CORRIMÃOS',ok:'check',nok:'x',tokOk:'OK',     tokNok:'COM PROBLEMA',
-       foto:'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=500&h=260&fit=crop',
        instrucao:'Firmeza dos corrimãos e condição dos degraus'},
     ],
     MENSAL:[
       {id:'est_cobertura', label:'COBERTURA',           ok:'check',nok:'x',tokOk:'OK',tokNok:'COM PROBLEMA',
-       foto:'https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=500&h=260&fit=crop',
        instrucao:'Cobertura, calhas, caixa d\'água e casa de máquinas',fotoOk:true},
       {id:'est_subestacao',label:'SUBESTAÇÃO ELÉTRICA', ok:'check',nok:'x',tokOk:'OK',tokNok:'COM PROBLEMA',
-       foto:'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=500&h=260&fit=crop',
        instrucao:'Quadros elétricos — sinais de aquecimento, odor ou ruído',fotoOk:true},
       {id:'est_bombas',    label:'BOMBAS HIDRÁULICAS',  ok:'check',nok:'x',tokOk:'FUNCIONANDO',tokNok:'PROBLEMA',
-       foto:'https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=500&h=260&fit=crop',
        instrucao:'Acione manualmente as bombas e verifique operação',fotoOk:true},
     ],
   },
@@ -1221,24 +1194,44 @@ function salvarPerfilFoto(email,dataUrl){
 }
 
 /* ─── LOGIN ───────────────────────────────────────────── */
-function fazerLogin(e){
+async function fazerLogin(e){
   e.preventDefault();
   const email=document.getElementById('login-email').value.trim().toLowerCase();
   const senha=document.getElementById('login-senha').value;
-  const u=USUARIOS[email];
   const erroEl=document.getElementById('login-erro');
-  if(!u||u.senha!==senha){
+  const btn=e.target.querySelector('button[type=submit]');
+  if(btn){btn.disabled=true;btn.textContent='Entrando...';}
+  try{
+    const res=await fetch('/api/auth',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({email,senha})
+    });
+    const data=await res.json();
+    if(!res.ok||!data.token){
+      erroEl.classList.add('visivel');
+      document.getElementById('login-senha').value='';
+      vibrar([100,50,100]);
+      setTimeout(()=>erroEl.classList.remove('visivel'),3000);
+      return;
+    }
+    localStorage.setItem('cg_token',data.token);
+    const perfil=data.usuario||{};
+    const u=USUARIOS[email]||{badge:'badge-fiscal',label:'Fiscal'};
+    const merged={...u,...perfil,perfil:perfil.perfil||u.perfil||'fiscal'};
+    merged.foto=getPerfilFoto(email)||perfil.foto_url||u.foto;
+    entrarSistema(email,merged);
+  }catch(err){
     erroEl.classList.add('visivel');
     document.getElementById('login-senha').value='';
     vibrar([100,50,100]);
     setTimeout(()=>erroEl.classList.remove('visivel'),3000);
-    return;
+  }finally{
+    if(btn){btn.disabled=false;btn.textContent='Entrar';}
   }
-  entrarSistema(email,u);
 }
 
 function quickLogin(email){
-  // Acesso rápido: só o usuário do dispositivo de hoje, sem senha
   const dev=getDispositivoUser();
   if(!dev||dev.email!==email){
     document.getElementById('login-email').value=email;
@@ -1246,8 +1239,16 @@ function quickLogin(email){
     toast('Digite a senha para confirmar');
     return;
   }
-  const u=USUARIOS[email];
-  if(u)entrarSistema(email,u);
+  // Acesso rápido apenas se token ainda válido
+  const token=localStorage.getItem('cg_token');
+  if(!token){
+    document.getElementById('login-email').value=email;
+    document.getElementById('login-senha').focus();
+    toast('Sessão expirada — informe a senha');
+    return;
+  }
+  const u=USUARIOS[email]||{badge:'badge-fiscal',label:'Fiscal'};
+  entrarSistema(email,u);
 }
 
 function entrarSistema(email,u){
@@ -1490,42 +1491,27 @@ function irParaChecklist(){
 /* ─── SUBITENS POR CATEGORIA DINÂMICA ─────────────────── */
 const SUBITENS = {
   corredores:[
-    {id:'ilum',  label:'ILUMINAÇÃO',      instrucao:'Todas as lâmpadas funcionando no corredor',       tokOk:'OK',      tokNok:'FALHA',
-     foto:'https://images.unsplash.com/photo-1565814329452-e1efa11c5b89?w=500&h=260&fit=crop'},
-    {id:'piso',  label:'PISO LIMPO',      instrucao:'Piso sem sujeira, manchas ou obstáculos',         tokOk:'LIMPO',   tokNok:'SUJO',
-     foto:'https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=500&h=260&fit=crop'},
-    {id:'porta', label:'PORTAS / ACESSOS',instrucao:'Portas fechadas corretamente, sem danos',         tokOk:'OK',      tokNok:'PROBLEMA',
-     foto:'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=500&h=260&fit=crop'},
-    {id:'livre', label:'SEM OBSTÁCULOS',  instrucao:'Corredor livre — nada bloqueando a passagem',     tokOk:'LIVRE',   tokNok:'BLOQUEADO',
-     foto:'https://images.unsplash.com/photo-1497366216548-37526070297c?w=500&h=260&fit=crop'},
+    {id:'ilum',  label:'ILUMINAÇÃO',      instrucao:'Todas as lâmpadas funcionando no corredor',       tokOk:'OK',      tokNok:'FALHA',},
+    {id:'piso',  label:'PISO LIMPO',      instrucao:'Piso sem sujeira, manchas ou obstáculos',         tokOk:'LIMPO',   tokNok:'SUJO',},
+    {id:'porta', label:'PORTAS / ACESSOS',instrucao:'Portas fechadas corretamente, sem danos',         tokOk:'OK',      tokNok:'PROBLEMA',},
+    {id:'livre', label:'SEM OBSTÁCULOS',  instrucao:'Corredor livre — nada bloqueando a passagem',     tokOk:'LIVRE',   tokNok:'BLOQUEADO',},
   ],
   estacionamento:[
-    {id:'ilum',  label:'ILUMINAÇÃO',        instrucao:'Setor do estacionamento bem iluminado',           tokOk:'OK',      tokNok:'FALHA',
-     foto:'https://images.unsplash.com/photo-1565814329452-e1efa11c5b89?w=500&h=260&fit=crop'},
-    {id:'canc',  label:'CANCELA / PORTÃO', instrucao:'Cancela e portão operando corretamente',          tokOk:'OK',      tokNok:'PROBLEMA',
-     foto:'https://images.unsplash.com/photo-1558618047-f4e70e31cc8b?w=500&h=260&fit=crop'},
-    {id:'vaga',  label:'VAGAS / OCUPAÇÃO', instrucao:'Nenhum veículo em área proibida ou irregular',    tokOk:'OK',      tokNok:'IRREGULAR',
-     foto:'https://images.unsplash.com/photo-1558618047-f4e70e31cc8b?w=500&h=260&fit=crop'},
-    {id:'piso',  label:'PISO LIMPO',        instrucao:'Setor varrido — sem óleo, lixo ou sujeira',      tokOk:'LIMPO',   tokNok:'SUJO',
-     foto:'https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=500&h=260&fit=crop'},
+    {id:'ilum',  label:'ILUMINAÇÃO',        instrucao:'Setor do estacionamento bem iluminado',           tokOk:'OK',      tokNok:'FALHA',},
+    {id:'canc',  label:'CANCELA / PORTÃO', instrucao:'Cancela e portão operando corretamente',          tokOk:'OK',      tokNok:'PROBLEMA',},
+    {id:'vaga',  label:'VAGAS / OCUPAÇÃO', instrucao:'Nenhum veículo em área proibida ou irregular',    tokOk:'OK',      tokNok:'IRREGULAR',},
+    {id:'piso',  label:'PISO LIMPO',        instrucao:'Setor varrido — sem óleo, lixo ou sujeira',      tokOk:'LIMPO',   tokNok:'SUJO',},
   ],
   lojas:[
-    {id:'fech',  label:'LOJA FECHADA',      instrucao:'Porta/grade trancada — cadeado ou fechadura OK', tokOk:'FECHADA', tokNok:'ABERTA',
-     foto:'https://images.unsplash.com/photo-1604719312566-8912e9227c6a?w=500&h=260&fit=crop'},
-    {id:'luz',   label:'VITRINE APAGADA',   instrucao:'Luzes internas e vitrine apagadas',              tokOk:'OK',      tokNok:'ACESA',
-     foto:'https://images.unsplash.com/photo-1604719312566-8912e9227c6a?w=500&h=260&fit=crop'},
-    {id:'mov',   label:'SEM MOVIMENTO',     instrucao:'Nenhuma pessoa ou atividade suspeita no local',  tokOk:'NORMAL',  tokNok:'SUSPEITO',
-     foto:'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=500&h=260&fit=crop'},
+    {id:'fech',  label:'LOJA FECHADA',      instrucao:'Porta/grade trancada — cadeado ou fechadura OK', tokOk:'FECHADA', tokNok:'ABERTA',},
+    {id:'luz',   label:'VITRINE APAGADA',   instrucao:'Luzes internas e vitrine apagadas',              tokOk:'OK',      tokNok:'ACESA',},
+    {id:'mov',   label:'SEM MOVIMENTO',     instrucao:'Nenhuma pessoa ou atividade suspeita no local',  tokOk:'NORMAL',  tokNok:'SUSPEITO',},
   ],
   limpeza:[
-    {id:'var',    label:'ÁREA LIMPA',         instrucao:'Piso varrido — sem lixo, pó ou detritos',              tokOk:'LIMPA',  tokNok:'SUJA',
-     foto:'https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=500&h=260&fit=crop'},
-    {id:'lixo',   label:'SEM LIXO AVULSO',    instrucao:'Sem lixo espalhado — lixeiras dentro do limite',       tokOk:'OK',     tokNok:'LIXO',
-     foto:'https://images.unsplash.com/photo-1605600659908-0ef719419d41?w=500&h=260&fit=crop'},
-    {id:'mancha', label:'SEM MANCHAS / ODORES',instrucao:'Paredes e piso sem manchas ou odores',                 tokOk:'OK',     tokNok:'PROBLEMA',
-     foto:'https://images.unsplash.com/photo-1497366216548-37526070297c?w=500&h=260&fit=crop'},
-    {id:'mat',    label:'MATERIAL GUARDADO',   instrucao:'Rodos, vassouras e produtos no lugar correto',         tokOk:'OK',     tokNok:'ESPALHADO',
-     foto:'https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=500&h=260&fit=crop'},
+    {id:'var',    label:'ÁREA LIMPA',         instrucao:'Piso varrido — sem lixo, pó ou detritos',              tokOk:'LIMPA',  tokNok:'SUJA',},
+    {id:'lixo',   label:'SEM LIXO AVULSO',    instrucao:'Sem lixo espalhado — lixeiras dentro do limite',       tokOk:'OK',     tokNok:'LIXO',},
+    {id:'mancha', label:'SEM MANCHAS / ODORES',instrucao:'Paredes e piso sem manchas ou odores',                 tokOk:'OK',     tokNok:'PROBLEMA',},
+    {id:'mat',    label:'MATERIAL GUARDADO',   instrucao:'Rodos, vassouras e produtos no lugar correto',         tokOk:'OK',     tokNok:'ESPALHADO',},
   ],
 };
 
@@ -2089,3 +2075,4 @@ function toast(msg,ms=2400){
 </script>
 </body>
 </html>
+

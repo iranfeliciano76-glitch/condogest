@@ -382,8 +382,8 @@ textarea.form-ctrl:focus{border-color:var(--azul)}
 }
 .login-bg-img{
   position:absolute;inset:0;
-  background:url('https://images.unsplash.com/photo-1486325212027-8081e485255e?w=1200&q=60&fit=crop') center/cover;
-  opacity:.12
+  background:linear-gradient(135deg,#0c1a3d 0%,#1e1b4b 60%,#0f172a 100%);
+  opacity:1
 }
 .login-card{
   position:relative;z-index:1;
@@ -594,11 +594,10 @@ textarea.form-ctrl:focus{border-color:var(--azul)}
   </div>
 
   <div class="sidebar-footer">
-    <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=80&h=80&fit=crop&crop=face" alt="Iran Feliciano"
-         onerror="this.src='https://ui-avatars.com/api/?name=Iran+Feliciano&background=7c3aed&color=fff&size=80'">
+    <img id="sb-user-foto" src="https://ui-avatars.com/api/?name=Admin&background=7c3aed&color=fff&size=80" alt="Usuário">
     <div class="sidebar-user">
-      <div class="sidebar-user-name" id="sb-user-name">Iran Feliciano</div>
-      <div class="sidebar-user-role" id="sb-user-role">Super Administrador</div>
+      <div class="sidebar-user-name" id="sb-user-name">—</div>
+      <div class="sidebar-user-role" id="sb-user-role">—</div>
     </div>
   </div>
   <div class="sidebar-copyright">
@@ -969,60 +968,75 @@ textarea.form-ctrl:focus{border-color:var(--azul)}
 const BASE_URL = 'https://ronda.prointegraserv.com.br';
 const API      = BASE_URL + '/api/v1';
 
-/* ─── USUÁRIOS DO SISTEMA ─────────────────────────────── */
+/* ─── PERFIS LOCAIS (sem senhas — auth via /api/auth) ─── */
+function admAvatarUrl(nome,cor='1e40af'){
+  return 'https://ui-avatars.com/api/?name='+encodeURIComponent(nome)+'&background='+cor+'&color=fff&size=80&bold=true';
+}
 const ADM_USERS = {
-  'iran@prointegraserv.com.br':          {senha:'iran2025',    nome:'Iran Feliciano',  cargo:'Super Administrador', perfil:'superadmin',
-    foto:'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=80&h=80&fit=crop&crop=face', tag:'tag-super', tagLabel:'Super Admin'},
-  'administradora@prointegraserv.com.br':{senha:'admin2025',   nome:'Administradora',  cargo:'Administradora',      perfil:'admin',
-    foto:'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=80&h=80&fit=crop&crop=face', tag:'tag-admin', tagLabel:'Admin'},
-  'sindico@prointegraserv.com.br':       {senha:'sindico2025', nome:'Síndico',          cargo:'Síndico do Condomínio',perfil:'admin',
-    foto:'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop&crop=face', tag:'tag-admin', tagLabel:'Síndico'},
-  'ronda@prointegraserv.com.br':         {senha:'ronda2025',   nome:'Fiscal de Ronda', cargo:'Fiscal de Piso',      perfil:'fiscal',
-    foto:'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=80&h=80&fit=crop&crop=face', tag:'tag-fiscal', tagLabel:'Fiscal'},
-  'limpeza@prointegraserv.com.br':       {senha:'limpeza2025', nome:'ASG Limpeza',      cargo:'Auxiliar de Limpeza', perfil:'fiscal',
-    foto:'https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=80&h=80&fit=crop&crop=face', tag:'tag-fiscal', tagLabel:'ASG'},
+  'iran@prointegraserv.com.br':          {nome:'Iran Feliciano',  cargo:'Super Administrador',  perfil:'superadmin',
+    get foto(){return admAvatarUrl(this.nome,'7c3aed');}, tag:'tag-super', tagLabel:'Super Admin'},
+  'administradora@prointegraserv.com.br':{nome:'Administradora',  cargo:'Administradora',       perfil:'admin',
+    get foto(){return admAvatarUrl(this.nome,'92400e');}, tag:'tag-admin', tagLabel:'Admin'},
+  'sindico@prointegraserv.com.br':       {nome:'Síndico',          cargo:'Síndico do Condomínio',perfil:'admin',
+    get foto(){return admAvatarUrl(this.nome,'92400e');}, tag:'tag-admin', tagLabel:'Síndico'},
+  'ronda@prointegraserv.com.br':         {nome:'Fiscal de Ronda', cargo:'Fiscal de Piso',       perfil:'fiscal',
+    get foto(){return admAvatarUrl(this.nome,'1e40af');}, tag:'tag-fiscal', tagLabel:'Fiscal'},
+  'limpeza@prointegraserv.com.br':       {nome:'ASG Limpeza',      cargo:'Auxiliar de Limpeza',  perfil:'fiscal',
+    get foto(){return admAvatarUrl(this.nome,'065f46');}, tag:'tag-fiscal', tagLabel:'ASG'},
 };
 
 /* ─── AUTENTICAÇÃO ADMIN ──────────────────────────────── */
 (function initLogin(){
-  // Verifica sessão existente
   const sess = sessionStorage.getItem('cg_adm_user');
-  if(sess){
-    ocultarLogin(JSON.parse(sess));
-    return;
-  }
-  // Renderiza cards de acesso rápido
+  if(sess){ ocultarLogin(JSON.parse(sess)); return; }
   const grid = document.getElementById('login-users-grid');
   if(!grid) return;
   grid.innerHTML = Object.entries(ADM_USERS).map(([email,u])=>`
     <div class="login-user-card" onclick="quickAdminLogin('${email}')">
-      <img src="${u.foto}" alt="${u.nome}"
-           onerror="this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(u.nome)}&background=1d4ed8&color=fff&size=80'">
+      <img src="${u.foto}" alt="${u.nome}">
       <div class="login-user-name">${u.nome.split(' ')[0]}</div>
       <div class="login-user-role">${u.cargo}</div>
       <span class="login-perfil-tag ${u.tag}">${u.tagLabel}</span>
     </div>`).join('');
 })();
 
-function adminLogin(e){
+async function adminLogin(e){
   e.preventDefault();
   const email = document.getElementById('adm-email').value.trim().toLowerCase();
   const senha = document.getElementById('adm-senha').value;
-  const u = ADM_USERS[email];
   const erroEl = document.getElementById('login-erro');
-  if(!u || u.senha !== senha){
+  const btn = e.target.querySelector('button[type=submit]');
+  if(btn){ btn.disabled=true; btn.textContent='Entrando...'; }
+  try{
+    const res = await fetch('/api/auth',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({email,senha})
+    });
+    const data = await res.json();
+    if(!res.ok||!data.token){
+      erroEl.classList.add('show');
+      document.getElementById('adm-senha').value='';
+      setTimeout(()=>erroEl.classList.remove('show'),3500);
+      return;
+    }
+    sessionStorage.setItem('cg_adm_token', data.token);
+    const perfil = data.usuario||{};
+    const u = ADM_USERS[email]||{tag:'tag-fiscal',tagLabel:'Fiscal'};
+    entrarAdmin(email, {...u, ...perfil, perfil: perfil.perfil||u.perfil||'fiscal',
+      foto: perfil.foto_url||u.foto});
+  }catch(err){
     erroEl.classList.add('show');
-    document.getElementById('adm-senha').value = '';
-    setTimeout(()=>erroEl.classList.remove('show'), 3500);
-    return;
+    document.getElementById('adm-senha').value='';
+    setTimeout(()=>erroEl.classList.remove('show'),3500);
+  }finally{
+    if(btn){ btn.disabled=false; btn.textContent='Entrar'; }
   }
-  entrarAdmin(email, u);
 }
 
 function quickAdminLogin(email){
-  const u = ADM_USERS[email];
   document.getElementById('adm-email').value = email;
-  entrarAdmin(email, u);
+  document.getElementById('adm-senha').focus();
 }
 
 function entrarAdmin(email, u){
@@ -1034,14 +1048,12 @@ function entrarAdmin(email, u){
 function ocultarLogin(sess){
   const el = document.getElementById('login-screen');
   if(el){ el.style.opacity='0'; el.style.transition='opacity .4s'; setTimeout(()=>el.style.display='none',400); }
-  // Atualiza sidebar com usuário logado
-  const imgEl = document.querySelector('.sidebar-footer img');
-  const nameEl = document.querySelector('.sidebar-user-name');
-  const roleEl = document.querySelector('.sidebar-user-role');
-  if(imgEl) imgEl.src = sess.foto;
-  if(nameEl) nameEl.textContent = sess.nome;
-  if(roleEl) roleEl.textContent = sess.cargo;
-  // Restringe menu para fiscais (view-only)
+  const imgEl  = document.getElementById('sb-user-foto');
+  const nameEl = document.getElementById('sb-user-name');
+  const roleEl = document.getElementById('sb-user-role');
+  if(imgEl)  imgEl.src = sess.foto || admAvatarUrl(sess.nome||'Admin','7c3aed');
+  if(nameEl) nameEl.textContent = sess.nome||sess.email;
+  if(roleEl) roleEl.textContent = sess.cargo||sess.perfil||'';
   if(sess.perfil==='fiscal'){
     document.querySelectorAll('.nav-item').forEach(el=>{
       if(!el.textContent.includes('Dashboard')&&!el.textContent.includes('Rondas'))
@@ -1050,84 +1062,11 @@ function ocultarLogin(sess){
   }
 }
 
-/* ──────────────────────────────────────────────────────────
-   DADOS MOCK (substituir por fetch(API + '/...')  em produção)
-────────────────────────────────────────────────────────── */
-// Fotos reais via Unsplash / ui-avatars fallback
-const FOTOS={
-  ronda:'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=80&h=80&fit=crop&crop=face',
-  limpeza:'https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=80&h=80&fit=crop&crop=face',
-  sindico:'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop&crop=face',
-  admin:'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=80&h=80&fit=crop&crop=face',
-  iran:'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=80&h=80&fit=crop&crop=face',
-};
-
-const RONDAS_ATIVAS = [
-  {id:'r1',fiscal:'Fiscal de Ronda',   foto:FOTOS.ronda,   turno:'Manhã',inicio:'07:02',
-   min:82, total:13,ok:11,nok:2,conf:84.6,status:'EM_ANDAMENTO'},
-  {id:'r2',fiscal:'ASG Limpeza',        foto:FOTOS.limpeza, turno:'Manhã',inicio:'07:15',
-   min:69, total:13,ok:8, nok:1,conf:88.9,status:'EM_ANDAMENTO'},
-  {id:'r3',fiscal:'Iran Feliciano',     foto:FOTOS.iran,    turno:'Manhã',inicio:'06:00',
-   min:142,total:13,ok:13,nok:0,conf:100, status:'CONCLUIDA'},
-  {id:'r4',fiscal:'Administradora',     foto:FOTOS.admin,   turno:'Tarde',inicio:'13:00',
-   min:12, total:13,ok:2, nok:0,conf:100, status:'EM_ANDAMENTO'},
-];
-
-const HISTORICO = [
-  {fiscal:'Iran Feliciano', de:'06:00',ate:'07:55',turno:'Manhã',ok:13,nok:0, conf:100,  status:'CONCLUIDA'},
-  {fiscal:'Fiscal de Ronda',de:'07:02',ate:'--',   turno:'Manhã',ok:11,nok:2, conf:84.6, status:'EM_ANDAMENTO'},
-  {fiscal:'ASG Limpeza',    de:'05:50',ate:'07:30',turno:'Manhã',ok:10,nok:3, conf:76.9, status:'INCOMPLETA'},
-  {fiscal:'Síndico',        de:'22:00',ate:'23:50',turno:'Noite',ok:12,nok:1, conf:92.3, status:'CONCLUIDA'},
-];
-
-const INCIDENTES = [
-  {id:'inc1',prioridade:'CRITICA',categoria:'Incêndio',  catCor:'#dc2626',item:'Extintor desaparecido — Escada CF',
-   local:'Escada Corta-Fogo — Bloco 1',fiscal:'Fiscal de Ronda',fiscalFoto:FOTOS.ronda,
-   hora:'08:23',fotos:1,audios:1,
-   fotoUrl:'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&h=400&fit=crop',
-   audioUrl:'',transcricao:'O extintor que ficava no corredor sumiu, a caixa está aberta e vazia'},
-  {id:'inc2',prioridade:'ALTA',   categoria:'Estrutura', catCor:'#d97706',item:'Elevador Social 1 parado',
-   local:'Elevador — Bloco 1',fiscal:'ASG Limpeza',fiscalFoto:FOTOS.limpeza,
-   hora:'08:47',fotos:2,audios:1,
-   fotoUrl:'https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=600&h=400&fit=crop',
-   audioUrl:'',transcricao:'Elevador com a porta travada aberta, botão não responde'},
-  {id:'inc3',prioridade:'ALTA',   categoria:'Segurança', catCor:'#1d4ed8',item:'Câmera da garagem com problema',
-   local:'Garagem — Nível -1',fiscal:'Fiscal de Ronda',fiscalFoto:FOTOS.ronda,
-   hora:'07:10',fotos:1,audios:1,
-   fotoUrl:'https://images.unsplash.com/photo-1558618047-f4e70e31cc8b?w=600&h=400&fit=crop',
-   audioUrl:'',transcricao:'Câmera do canto esquerdo da garagem piscando intermitentemente'},
-  {id:'inc4',prioridade:'MEDIA',  categoria:'Limpeza',   catCor:'#16a34a',item:'Lixeiras do térreo transbordando',
-   local:'Hall Térreo — Bloco 1',fiscal:'ASG Limpeza',fiscalFoto:FOTOS.limpeza,
-   hora:'13:18',fotos:1,audios:0,
-   fotoUrl:'https://images.unsplash.com/photo-1605600659908-0ef719419d41?w=600&h=400&fit=crop',
-   audioUrl:'',transcricao:''},
-  {id:'inc5',prioridade:'MEDIA',  categoria:'Estrutura', catCor:'#d97706',item:'Lâmpadas queimadas — Corredor 3',
-   local:'Corredor 3° Andar',fiscal:'Fiscal de Ronda',fiscalFoto:FOTOS.ronda,
-   hora:'08:55',fotos:1,audios:1,
-   fotoUrl:'https://images.unsplash.com/photo-1565814329452-e1efa11c5b89?w=600&h=400&fit=crop',
-   audioUrl:'',transcricao:'Três lâmpadas apagadas no corredor do terceiro andar'},
-  {id:'inc6',prioridade:'ALTA',   categoria:'Incêndio',  catCor:'#dc2626',item:'Porta Corta-Fogo travada aberta',
-   local:'Escada — 5° ao 7° Andar',fiscal:'Fiscal de Ronda',fiscalFoto:FOTOS.ronda,
-   hora:'09:30',fotos:2,audios:1,
-   fotoUrl:'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&h=400&fit=crop',
-   audioUrl:'',transcricao:'Porta corta-fogo travada aberta com calço de madeira'},
-  {id:'inc7',prioridade:'BAIXA',  categoria:'Limpeza',   catCor:'#16a34a',item:'Banheiro feminino — sabonete vazio',
-   local:'Banheiro Feminino — Térreo',fiscal:'ASG Limpeza',fiscalFoto:FOTOS.limpeza,
-   hora:'10:05',fotos:1,audios:0,
-   fotoUrl:'https://images.unsplash.com/photo-1552321554-5fefe8c9ef14?w=600&h=400&fit=crop',
-   audioUrl:'',transcricao:''},
-];
-
-const HEATMAP = [
-  {nome:'Escada Corta-Fogo B1', bloco:'B1',cnt:8,  nivel:3},
-  {nome:'Garagem Bloco A',       bloco:'GA',cnt:6,  nivel:2},
-  {nome:'Elevadores',            bloco:'-', cnt:5,  nivel:2},
-  {nome:'Corredor 3° Andar',     bloco:'1', cnt:4,  nivel:2},
-  {nome:'Hall Térreo',           bloco:'1', cnt:3,  nivel:1},
-  {nome:'Recepção Principal',    bloco:'-', cnt:2,  nivel:1},
-  {nome:'Portaria',              bloco:'-', cnt:1,  nivel:0},
-  {nome:'Banheiros',             bloco:'-', cnt:1,  nivel:0},
-];
+/* ─── DADOS REAIS — carregados via API ─────────────────── */
+const RONDAS_ATIVAS = [];
+const HISTORICO     = [];
+const INCIDENTES    = [];
+const HEATMAP       = [];
 
 /* ──────────────────────────────────────────────────────────
    INIT
