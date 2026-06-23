@@ -1,4 +1,7 @@
 {
+  "buildCommand": "",
+  "outputDirectory": ".",
+  "installCommand": "",
   "rewrites": [
     { "source": "/mobile/(.*)", "destination": "/mobile/index.html" },
     { "source": "/admin/(.*)",  "destination": "/admin/index.html"  }

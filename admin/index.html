@@ -577,6 +577,10 @@ textarea.form-ctrl:focus{border-color:var(--azul)}
       <span class="nav-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg></span>
       Emitir Relatório PDF
     </div>
+    <div class="nav-item" onclick="nav('ponto')">
+      <span class="nav-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span>
+      Relatório de Ponto
+    </div>
 
     <div class="nav-section" style="margin-top:8px">Sistema</div>
     <div class="nav-item" onclick="window.open('/mobile/','_blank')">
@@ -827,6 +831,101 @@ textarea.form-ctrl:focus{border-color:var(--azul)}
       </div>
     </div>
 
+    <!-- ─── SECTION: RELATÓRIO DE PONTO ──────────────────────── -->
+    <div id="sec-ponto" class="section">
+
+      <!-- Cabeçalho -->
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px">
+        <div>
+          <h2 style="font-size:22px;font-weight:800;color:var(--dark)">Relatório de Ponto Eletrônico</h2>
+          <p style="font-size:13px;color:var(--muted);margin-top:2px">Registros de entrada, saída e intervalos dos fiscais</p>
+        </div>
+        <button onclick="exportarPontoPDF()" style="background:linear-gradient(135deg,#1d4ed8,#4f46e5);color:#fff;border:none;border-radius:10px;padding:10px 20px;font-size:13px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:8px">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#fff" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Exportar PDF
+        </button>
+      </div>
+
+      <!-- Filtros -->
+      <div class="relatorio-config" style="margin-bottom:20px">
+        <div class="config-titulo" style="margin-bottom:16px">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" style="display:inline;vertical-align:middle;margin-right:6px"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+          Filtrar Registros
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;align-items:end">
+          <div>
+            <label class="config-label">DE</label>
+            <input type="date" id="ponto-de" class="config-input" onchange="carregarPontos()">
+          </div>
+          <div>
+            <label class="config-label">ATÉ</label>
+            <input type="date" id="ponto-ate" class="config-input" onchange="carregarPontos()">
+          </div>
+          <div>
+            <label class="config-label">FISCAL</label>
+            <select id="ponto-fiscal" class="config-select" onchange="carregarPontos()">
+              <option value="">Todos os Fiscais</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- KPIs de ponto -->
+      <div id="ponto-kpis" style="display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:20px">
+        <div class="kpi-card">
+          <div class="kpi-label">Total Registros</div>
+          <div class="kpi-value" id="kpi-total-pontos">—</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Entradas</div>
+          <div class="kpi-value" style="color:#16a34a" id="kpi-entradas">—</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Saídas</div>
+          <div class="kpi-value" style="color:#dc2626" id="kpi-saidas">—</div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-label">Horas Trabalhadas</div>
+          <div class="kpi-value" style="color:#1d4ed8" id="kpi-horas">—</div>
+        </div>
+      </div>
+
+      <!-- Tabela de pontos -->
+      <div class="tabela-card">
+        <div class="tabela-header">
+          <div class="tabela-titulo">Registros de Ponto</div>
+          <div id="ponto-total-txt" style="font-size:12px;color:var(--muted)"></div>
+        </div>
+        <div style="overflow-x:auto">
+          <table style="width:100%;border-collapse:collapse">
+            <thead>
+              <tr style="background:#f8fafc;border-bottom:2px solid #e2e8f0">
+                <th style="padding:10px 14px;text-align:left;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#64748b">Fiscal</th>
+                <th style="padding:10px 14px;text-align:left;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#64748b">Tipo</th>
+                <th style="padding:10px 14px;text-align:left;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#64748b">Data / Hora</th>
+                <th style="padding:10px 14px;text-align:left;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#64748b">Localização</th>
+                <th style="padding:10px 14px;text-align:center;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:#64748b">Selfie</th>
+              </tr>
+            </thead>
+            <tbody id="ponto-tbody">
+              <tr><td colspan="5" style="padding:40px;text-align:center;color:#94a3b8;font-size:13px">Selecione o período para carregar os registros</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Preview PDF de ponto -->
+      <div id="ponto-pdf-preview" style="display:none;margin-top:24px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+          <div style="font-size:15px;font-weight:700;color:var(--dark)">Prévia do PDF</div>
+          <button onclick="baixarPontoPDF()" style="background:linear-gradient(135deg,#16a34a,#15803d);color:#fff;border:none;border-radius:8px;padding:8px 16px;font-size:13px;font-weight:700;cursor:pointer">
+            ↓ Baixar PDF
+          </button>
+        </div>
+        <div id="ponto-pdf-content" style="background:#fff;border-radius:12px;padding:32px;border:1px solid #e2e8f0;max-height:600px;overflow-y:auto"></div>
+      </div>
+    </div>
+
     <!-- ─── SECTION: CONFIGURAÇÕES (placeholder) ─────────────── -->
     <div id="sec-configuracoes" class="section">
       <div class="relatorio-config">
@@ -1056,13 +1155,14 @@ function atualizarData(){
 /* ──────────────────────────────────────────────────────────
    NAVEGAÇÃO
 ────────────────────────────────────────────────────────── */
-const NOMES_SECAO = {dashboard:'Dashboard',rondas:'Rondas em Tempo Real',triagem:'Central de Triagem',relatorios:'Emitir Relatório PDF',configuracoes:'Configurações'};
+const NOMES_SECAO = {dashboard:'Dashboard',rondas:'Rondas em Tempo Real',triagem:'Central de Triagem',relatorios:'Emitir Relatório PDF',ponto:'Relatório de Ponto',configuracoes:'Configurações'};
 function nav(sec){
   document.querySelectorAll('.nav-item').forEach(el=>el.classList.remove('ativo'));
   event.currentTarget.classList.add('ativo');
   document.querySelectorAll('.section').forEach(s=>s.classList.remove('ativa'));
   document.getElementById('sec-'+sec).classList.add('ativa');
   document.getElementById('topbar-titulo').textContent=NOMES_SECAO[sec]||sec;
+  if(sec==='ponto'){ iniciarFiltroPonto(); carregarPontos(); }
 }
 
 /* ──────────────────────────────────────────────────────────
@@ -1425,6 +1525,242 @@ function gerarPreview(){
   document.getElementById('btn-exportar-pdf').style.display='inline-flex';
   document.getElementById('preview-container').scrollIntoView({behavior:'smooth'});
 }
+
+/* ──────────────────────────────────────────────────────────
+   RELATÓRIO DE PONTO
+────────────────────────────────────────────────────────── */
+let PONTOS_CACHE = [];
+
+function iniciarFiltroPonto(){
+  const hoje = new Date();
+  const primeiroDia = new Date(hoje.getFullYear(), hoje.getMonth(), 1);
+  document.getElementById('ponto-de').value  = primeiroDia.toISOString().slice(0,10);
+  document.getElementById('ponto-ate').value = hoje.toISOString().slice(0,10);
+}
+
+async function carregarPontos(){
+  const de      = document.getElementById('ponto-de').value;
+  const ate     = document.getElementById('ponto-ate').value;
+  const fiscalId= document.getElementById('ponto-fiscal').value;
+  if(!de || !ate){ return; }
+
+  const tbody = document.getElementById('ponto-tbody');
+  tbody.innerHTML = '<tr><td colspan="5" style="padding:30px;text-align:center;color:#94a3b8">Carregando...</td></tr>';
+
+  // Carrega do localStorage (dados locais)
+  const TIPO_CFG = {
+    ENTRADA:          {label:'Entrada',          cor:'#16a34a', bg:'#dcfce7'},
+    SAIDA:            {label:'Saída',            cor:'#dc2626', bg:'#fee2e2'},
+    INICIO_INTERVALO: {label:'Início Intervalo', cor:'#d97706', bg:'#fef3c7'},
+    FIM_INTERVALO:    {label:'Fim Intervalo',    cor:'#0891b2', bg:'#cffafe'},
+  };
+
+  // Coleta dados do localStorage de todos os usuários
+  const todos = [];
+  try {
+    // Tenta API primeiro
+    const sess = JSON.parse(localStorage.getItem('cg_adm_sessao')||'{}');
+    const token = sess.token;
+    if(token){
+      const params = new URLSearchParams({de, ate});
+      if(fiscalId) params.append('fiscal_id', fiscalId);
+      const r = await fetch('/api/relatorio-pontos?'+params, {
+        headers:{'Authorization':'Bearer '+token}
+      });
+      if(r.ok){
+        const data = await r.json();
+        PONTOS_CACHE = data.pontos || [];
+        // Popula select de fiscais
+        const sel = document.getElementById('ponto-fiscal');
+        const atual = sel.value;
+        sel.innerHTML = '<option value="">Todos os Fiscais</option>';
+        (data.fiscais||[]).forEach(f=>{
+          const opt = document.createElement('option');
+          opt.value = f.id; opt.textContent = f.nome;
+          if(f.id === atual) opt.selected = true;
+          sel.appendChild(opt);
+        });
+        renderizarTabelaPonto(PONTOS_CACHE, TIPO_CFG);
+        return;
+      }
+    }
+  } catch(e){ console.warn('API indisponível, usando localStorage', e); }
+
+  // Fallback: localStorage
+  const USUARIOS_LOCAL = {'ronda@prointegraserv.com.br':{nome:'Fiscal de Piso'},'limpeza@prointegraserv.com.br':{nome:'ASG Limpeza'},'sindico@prointegraserv.com.br':{nome:'Síndico'},'iran@prointegraserv.com.br':{nome:'Iran Feliciano'}};
+  Object.keys(USUARIOS_LOCAL).forEach(email=>{
+    const chave = 'cg_pontos_'+email.split('@')[0];
+    const pts = JSON.parse(localStorage.getItem(chave)||'[]');
+    pts.forEach(p=>{ todos.push({...p, _email:email, _nome:USUARIOS_LOCAL[email].nome}); });
+  });
+
+  // Filtra por data
+  const deTs = new Date(de+'T00:00:00').getTime();
+  const ateTs = new Date(ate+'T23:59:59').getTime();
+  const filtrado = todos.filter(p=>{
+    const ts = new Date(p.ts||p.registrado_em||0).getTime();
+    return ts >= deTs && ts <= ateTs && (!fiscalId || p._email===fiscalId);
+  }).sort((a,b)=>new Date(b.ts||b.registrado_em)-new Date(a.ts||a.registrado_em));
+
+  PONTOS_CACHE = filtrado;
+  renderizarTabelaPonto(filtrado, TIPO_CFG);
+}
+
+function renderizarTabelaPonto(lista, TIPO_CFG){
+  const tbody = document.getElementById('ponto-tbody');
+
+  // KPIs
+  const entradas = lista.filter(p=>(p.tipo||p.type)==='ENTRADA').length;
+  const saidas   = lista.filter(p=>(p.tipo||p.type)==='SAIDA').length;
+  document.getElementById('kpi-total-pontos').textContent = lista.length;
+  document.getElementById('kpi-entradas').textContent = entradas;
+  document.getElementById('kpi-saidas').textContent   = saidas;
+
+  // Calcula horas trabalhadas (pares ENTRADA→SAIDA por fiscal por dia)
+  let totalMinutos = 0;
+  const porFiscalDia = {};
+  lista.forEach(p=>{
+    const chave = (p.fiscal_id||p._email) + '_' + new Date(p.registrado_em||p.ts).toLocaleDateString('pt-BR');
+    if(!porFiscalDia[chave]) porFiscalDia[chave] = [];
+    porFiscalDia[chave].push(p);
+  });
+  Object.values(porFiscalDia).forEach(pts=>{
+    const entrada = pts.find(p=>(p.tipo||p.type)==='ENTRADA');
+    const saida   = pts.find(p=>(p.tipo||p.type)==='SAIDA');
+    if(entrada && saida){
+      const diff = new Date(saida.registrado_em||saida.ts) - new Date(entrada.registrado_em||entrada.ts);
+      totalMinutos += Math.round(diff/60000);
+    }
+  });
+  const horas = Math.floor(totalMinutos/60);
+  const mins  = totalMinutos % 60;
+  document.getElementById('kpi-horas').textContent = totalMinutos > 0 ? `${horas}h ${String(mins).padStart(2,'0')}m` : '—';
+
+  document.getElementById('ponto-total-txt').textContent = lista.length + ' registro(s) encontrado(s)';
+
+  if(!lista.length){
+    tbody.innerHTML = '<tr><td colspan="5" style="padding:40px;text-align:center;color:#94a3b8;font-size:13px">Nenhum registro no período selecionado</td></tr>';
+    return;
+  }
+
+  tbody.innerHTML = lista.map(p=>{
+    const tipo = p.tipo || p.type || 'ENTRADA';
+    const cfg  = TIPO_CFG[tipo] || {label:tipo, cor:'#64748b', bg:'#f1f5f9'};
+    const nome = (p.perfis && p.perfis.nome) || p._nome || p.fiscal_id || '—';
+    const cargo= (p.perfis && p.perfis.cargo) || '';
+    const dt   = new Date(p.registrado_em || p.ts);
+    const dataFmt = dt.toLocaleDateString('pt-BR');
+    const horaFmt = dt.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+    const loc  = p.endereco || (p.lat ? `${Number(p.lat).toFixed(5)}, ${Number(p.lng).toFixed(5)}` : '—');
+    const selfie = p.selfie_url || p.selfie || '';
+    return `<tr style="border-bottom:1px solid #f1f5f9;transition:background .15s" onmouseover="this.style.background='#f8fafc'" onmouseout="this.style.background=''">
+      <td style="padding:12px 14px">
+        <div style="display:flex;align-items:center;gap:10px">
+          ${selfie ? `<img src="${selfie}" style="width:36px;height:36px;border-radius:50%;object-fit:cover;border:2px solid #e2e8f0;flex-shrink:0">` : `<div style="width:36px;height:36px;border-radius:50%;background:#f1f5f9;display:flex;align-items:center;justify-content:center;flex-shrink:0"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="#94a3b8" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>`}
+          <div>
+            <div style="font-size:13px;font-weight:700;color:#1e293b">${nome}</div>
+            <div style="font-size:11px;color:#94a3b8">${cargo}</div>
+          </div>
+        </div>
+      </td>
+      <td style="padding:12px 14px">
+        <span style="display:inline-flex;align-items:center;gap:5px;background:${cfg.bg};color:${cfg.cor};border-radius:8px;padding:4px 10px;font-size:11px;font-weight:700">
+          <svg viewBox="0 0 24 24" width="11" height="11" fill="${cfg.cor}"><circle cx="12" cy="12" r="10"/></svg>
+          ${cfg.label}
+        </span>
+      </td>
+      <td style="padding:12px 14px">
+        <div style="font-size:13px;font-weight:600;color:#1e293b">${dataFmt}</div>
+        <div style="font-size:12px;color:#64748b;margin-top:1px">${horaFmt}</div>
+      </td>
+      <td style="padding:12px 14px;max-width:220px">
+        ${p.link_mapa
+          ? `<a href="${p.link_mapa}" target="_blank" style="font-size:11px;color:#1d4ed8;text-decoration:none;display:flex;align-items:center;gap:4px"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>${loc.length>40?loc.slice(0,40)+'…':loc}</a>`
+          : `<span style="font-size:11px;color:#94a3b8">${loc.length>40?loc.slice(0,40)+'…':loc}</span>`}
+      </td>
+      <td style="padding:12px 14px;text-align:center">
+        ${selfie ? `<img src="${selfie}" style="width:44px;height:44px;border-radius:8px;object-fit:cover;border:1px solid #e2e8f0;cursor:pointer" onclick="window.open('${selfie}','_blank')" title="Ver selfie em tamanho completo">` : '<span style="font-size:11px;color:#cbd5e1">—</span>'}
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+async function exportarPontoPDF(){
+  if(!PONTOS_CACHE.length){ alert('Carregue os registros primeiro.'); return; }
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({orientation:'portrait', unit:'mm', format:'a4'});
+  const W = 210, mg = 14;
+
+  // Cabeçalho
+  doc.setFillColor(15,23,42); doc.rect(0,0,W,38,'F');
+  doc.setTextColor(255,255,255);
+  doc.setFontSize(18); doc.setFont('helvetica','bold');
+  doc.text('RELATÓRIO DE PONTO ELETRÔNICO', mg, 16);
+  doc.setFontSize(9); doc.setFont('helvetica','normal');
+  doc.text('CondoGest · ronda.prointegraserv.com.br', mg, 23);
+  doc.text('ProIntegra Serviços · CNPJ 31.495.586/0001-36', mg, 29);
+  const de  = document.getElementById('ponto-de').value;
+  const ate = document.getElementById('ponto-ate').value;
+  doc.setFontSize(8);
+  doc.text(`Período: ${de.split('-').reverse().join('/')} → ${ate.split('-').reverse().join('/')}`, W-mg, 16, {align:'right'});
+  doc.text(`Gerado em: ${new Date().toLocaleString('pt-BR')}`, W-mg, 22, {align:'right'});
+
+  // Tabela
+  let y = 46;
+  const TIPO_CFG = {ENTRADA:{label:'ENTRADA',r:22,g:163,b:74},SAIDA:{label:'SAÍDA',r:220,g:38,b:38},INICIO_INTERVALO:{label:'INÍCIO INTERV.',r:217,g:119,b:6},FIM_INTERVALO:{label:'FIM INTERV.',r:8,g:145,b:178}};
+  const cols = [14, 60, 100, 135, 175];
+  const cabecalhos = ['FISCAL','TIPO','DATA','HORA','LOCAL'];
+
+  doc.setFillColor(30,41,59); doc.rect(0,y-5,W,10,'F');
+  doc.setTextColor(255,255,255); doc.setFontSize(8); doc.setFont('helvetica','bold');
+  cabecalhos.forEach((h,i)=>doc.text(h, cols[i], y));
+  y += 7;
+
+  PONTOS_CACHE.forEach((p,idx)=>{
+    if(y > 275){ doc.addPage(); y = 16; }
+    if(idx%2===0){ doc.setFillColor(248,250,252); doc.rect(0,y-4,W,8,'F'); }
+    const tipo = p.tipo || p.type || 'ENTRADA';
+    const cfg  = TIPO_CFG[tipo] || {label:tipo,r:100,g:116,b:139};
+    const nome = (p.perfis&&p.perfis.nome)||p._nome||'—';
+    const dt   = new Date(p.registrado_em||p.ts);
+    const loc  = p.endereco ? p.endereco.slice(0,28) : (p.lat?`${Number(p.lat).toFixed(4)},${Number(p.lng).toFixed(4)}`:'—');
+    doc.setTextColor(30,41,59); doc.setFont('helvetica','normal'); doc.setFontSize(8);
+    doc.text(nome.slice(0,22), cols[0], y);
+    doc.setFillColor(cfg.r,cfg.g,cfg.b); doc.roundedRect(cols[1]-1,y-4,32,6,1,1,'F');
+    doc.setTextColor(255,255,255); doc.setFont('helvetica','bold'); doc.setFontSize(6.5);
+    doc.text(cfg.label, cols[1]+1, y-0.5);
+    doc.setTextColor(30,41,59); doc.setFont('helvetica','normal'); doc.setFontSize(8);
+    doc.text(dt.toLocaleDateString('pt-BR'), cols[2], y);
+    doc.text(dt.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit',second:'2-digit'}), cols[3], y);
+    doc.text(loc, cols[4], y);
+    y += 8;
+  });
+
+  // Rodapé
+  const totalPags = doc.internal.getNumberOfPages();
+  for(let i=1;i<=totalPags;i++){
+    doc.setPage(i);
+    doc.setFillColor(15,23,42); doc.rect(0,286,W,12,'F');
+    doc.setTextColor(255,255,255); doc.setFontSize(7); doc.setFont('helvetica','normal');
+    doc.text('© 2025 ProIntegra Serviços · CNPJ 31.495.586/0001-36', mg, 293);
+    doc.text(`Página ${i} de ${totalPags}`, W-mg, 293, {align:'right'});
+  }
+
+  const {hash} = await gerarHashRelatorio({tipo:'ponto', registros: PONTOS_CACHE.length});
+  doc.addPage();
+  doc.setFillColor(15,23,42); doc.rect(0,0,W,20,'F');
+  doc.setTextColor(255,255,255); doc.setFontSize(10); doc.setFont('helvetica','bold');
+  doc.text('ASSINATURA DIGITAL', mg, 13);
+  doc.setFontSize(8); doc.setFont('helvetica','normal');
+  doc.text('Responsável: Iran Feliciano · Gestor de Segurança · iran@prointegraserv.com.br', mg, 28);
+  doc.text('Hash SHA-256:', mg, 36);
+  doc.setFont('courier','normal'); doc.setFontSize(7);
+  doc.text(hash, mg, 43);
+
+  doc.save(`relatorio-ponto-${de}-${ate}.pdf`);
+}
+
+function baixarPontoPDF(){ exportarPontoPDF(); }
 
 /* Gera hash SHA-256 do conteúdo do relatório via Web Crypto API */
 async function gerarHashRelatorio(dados){
