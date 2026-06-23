@@ -569,7 +569,7 @@ textarea.form-ctrl:focus{border-color:var(--azul)}
     <div class="nav-item" onclick="nav('triagem')">
       <span class="nav-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>
       Central de Triagem
-      <span class="badge badge-vermelho ml-auto" style="font-size:10px" id="badge-nav-inc">7</span>
+      <span class="badge badge-vermelho ml-auto" style="font-size:10px;display:none" id="badge-nav-inc">0</span>
     </div>
 
     <div class="nav-section" style="margin-top:8px">Relatórios</div>
@@ -640,8 +640,8 @@ textarea.form-ctrl:focus{border-color:var(--azul)}
           </div>
           <div class="kpi-info">
             <div class="kpi-label">Conformidade Geral</div>
-            <div class="kpi-valor">87,4%</div>
-            <div class="kpi-delta delta-up">+2,1% vs ontem</div>
+            <div class="kpi-valor" id="kpi-conformidade">—</div>
+            <div class="kpi-delta" id="kpi-conformidade-delta" style="color:#64748b">Sem dados hoje</div>
           </div>
         </div>
         <div class="kpi-card">
@@ -650,8 +650,8 @@ textarea.form-ctrl:focus{border-color:var(--azul)}
           </div>
           <div class="kpi-info">
             <div class="kpi-label">Rondas Hoje</div>
-            <div class="kpi-valor">12</div>
-            <div class="kpi-delta delta-up">+3 vs ontem</div>
+            <div class="kpi-valor" id="kpi-rondas">0</div>
+            <div class="kpi-delta" id="kpi-rondas-delta" style="color:#64748b">Sem registros</div>
           </div>
         </div>
         <div class="kpi-card">
@@ -660,8 +660,8 @@ textarea.form-ctrl:focus{border-color:var(--azul)}
           </div>
           <div class="kpi-info">
             <div class="kpi-label">Incidentes Abertos</div>
-            <div class="kpi-valor">7</div>
-            <div class="kpi-delta delta-down">+2 desde ontem</div>
+            <div class="kpi-valor" id="kpi-incidentes">0</div>
+            <div class="kpi-delta" id="kpi-incidentes-delta" style="color:#64748b">Sem incidentes</div>
           </div>
         </div>
         <div class="kpi-card">
@@ -670,8 +670,8 @@ textarea.form-ctrl:focus{border-color:var(--azul)}
           </div>
           <div class="kpi-info">
             <div class="kpi-label">Alertas de Pânico</div>
-            <div class="kpi-valor">1</div>
-            <div class="kpi-delta text-muted">Últimas 24h</div>
+            <div class="kpi-valor" id="kpi-panico">0</div>
+            <div class="kpi-delta" style="color:#64748b">Últimas 24h</div>
           </div>
         </div>
       </div>
@@ -1175,21 +1175,30 @@ function nav(sec){
    CHARTS
 ────────────────────────────────────────────────────────── */
 function iniciarCharts(){
-  // Tendência de falhas 30 dias
+  const vazioPlugin={id:'vazio',afterDraw(chart){
+    if(chart.data.datasets[0].data.every(v=>!v)){
+      const{ctx,chartArea:{left,top,width,height}}=chart;
+      ctx.save();ctx.fillStyle='#475569';ctx.font='13px Inter,sans-serif';
+      ctx.textAlign='center';ctx.textBaseline='middle';
+      ctx.fillText('Sem dados — aguardando registros reais',left+width/2,top+height/2);
+      ctx.restore();
+    }
+  }};
+
+  // Tendência de falhas 30 dias — sem dados reais ainda
   const dias=Array.from({length:30},(_,i)=>{
     const d=new Date();d.setDate(d.getDate()-29+i);
     return d.getDate()+'/'+(d.getMonth()+1);
   });
-  const falhas=dias.map(()=>Math.floor(Math.random()*8)+2);
   new Chart(document.getElementById('chart-tendencia'),{
     type:'line',
     data:{labels:dias,datasets:[
-      {label:'Falhas registradas',data:falhas,borderColor:'#2563eb',
-       backgroundColor:'rgba(37,99,235,.08)',fill:true,tension:.35,
-       pointRadius:3,pointBackgroundColor:'#2563eb'},
-      {label:'Média móvel',data:falhas.map((_,i)=>Math.round(falhas.slice(Math.max(0,i-6),i+1).reduce((a,b)=>a+b,0)/Math.min(i+1,7)*10)/10),
+      {label:'Falhas registradas',data:Array(30).fill(0),borderColor:'#2563eb',
+       backgroundColor:'rgba(37,99,235,.08)',fill:true,tension:.35,pointRadius:2,pointBackgroundColor:'#2563eb'},
+      {label:'Média móvel',data:Array(30).fill(0),
        borderColor:'#94a3b8',borderDash:[4,3],fill:false,tension:.35,pointRadius:0}
     ]},
+    plugins:[vazioPlugin],
     options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,position:'top',labels:{font:{size:11}}}},scales:{y:{beginAtZero:true,ticks:{font:{size:10}}},x:{ticks:{maxTicksLimit:10,font:{size:10}}}}}
   });
 
@@ -1197,19 +1206,20 @@ function iniciarCharts(){
   new Chart(document.getElementById('chart-categorias'),{
     type:'doughnut',
     data:{labels:['Limpeza','Segurança','Estrutura','Incêndio'],
-      datasets:[{data:[8,14,22,11],backgroundColor:['#16a34a','#1d4ed8','#d97706','#dc2626'],
+      datasets:[{data:[0,0,0,0],backgroundColor:['#16a34a','#1d4ed8','#d97706','#dc2626'],
         borderWidth:2,borderColor:'#fff'}]},
+    plugins:[vazioPlugin],
     options:{responsive:true,maintainAspectRatio:false,cutout:'60%',
       plugins:{legend:{position:'right',labels:{font:{size:11},boxWidth:12,padding:12}}}}
   });
 
-  // SLA
+  // SLA — mostra apenas os alvos, sem médias reais ainda
   new Chart(document.getElementById('chart-sla'),{
     type:'bar',
     data:{labels:['Crítica','Alta','Média','Baixa'],
       datasets:[
         {label:'SLA alvo (dias)',data:[0.5,1,3,7],backgroundColor:'rgba(37,99,235,.15)',borderColor:'#2563eb',borderWidth:1},
-        {label:'Média real',     data:[0.8,1.4,2.6,5.9],backgroundColor:['rgba(220,38,38,.7)','rgba(234,88,12,.7)','rgba(234,179,8,.7)','rgba(22,163,74,.7)'],borderWidth:0}
+        {label:'Média real',     data:[0,0,0,0],backgroundColor:['rgba(220,38,38,.7)','rgba(234,88,12,.7)','rgba(234,179,8,.7)','rgba(22,163,74,.7)'],borderWidth:0}
       ]},
     options:{responsive:true,maintainAspectRatio:false,
       plugins:{legend:{display:true,position:'top',labels:{font:{size:11}}}},
@@ -1222,8 +1232,13 @@ function iniciarCharts(){
    RONDAS
 ────────────────────────────────────────────────────────── */
 function renderRondas(){
-  document.getElementById('rondas-tbody').innerHTML=RONDAS_ATIVAS
-    .filter(r=>r.status==='EM_ANDAMENTO')
+  const ativas=RONDAS_ATIVAS.filter(r=>r.status==='EM_ANDAMENTO');
+  if(!ativas.length){
+    document.getElementById('rondas-tbody').innerHTML=
+      '<tr><td colspan="7" style="text-align:center;color:#475569;padding:32px">Nenhuma ronda em andamento no momento</td></tr>';
+    return;
+  }
+  document.getElementById('rondas-tbody').innerHTML=ativas
     .map(r=>{
       const pct=Math.round((r.ok+r.nok)/r.total*100);
       const confCor=r.conf>=90?'verde':r.conf>=70?'amarelo':'vermelho';
@@ -1248,6 +1263,11 @@ function renderRondas(){
 }
 
 function renderHistorico(){
+  if(!HISTORICO.length){
+    document.getElementById('historico-tbody').innerHTML=
+      '<tr><td colspan="7" style="text-align:center;color:#475569;padding:32px">Nenhuma ronda registrada hoje</td></tr>';
+    return;
+  }
   document.getElementById('historico-tbody').innerHTML=HISTORICO.map(r=>{
     const sc={CONCLUIDA:'verde',EM_ANDAMENTO:'azul',INCOMPLETA:'amarelo',CANCELADA:'vermelho'};
     return `<tr>
@@ -1263,8 +1283,8 @@ function renderHistorico(){
 }
 
 function atualizarRondas(){renderRondas();renderHistorico();}
-function exportarHistorico(){alert('Em produção: GET '+API+'/rondas/export?format=csv');}
-function verDetalhes(id){alert('Em produção: navegação para '+BASE_URL+'/admin/rondas/'+id);}
+function exportarHistorico(){ window.print(); }
+function verDetalhes(id){ /* detalhes da ronda — funcionalidade futura */ }
 
 /* ──────────────────────────────────────────────────────────
    INCIDENTES
@@ -1273,6 +1293,16 @@ let incSelecionado=null;
 
 function renderIncidentes(filtro=''){
   const lista=INCIDENTES.filter(i=>!filtro||i.prioridade===filtro);
+  if(!lista.length){
+    document.getElementById('inc-lista').innerHTML=
+      '<div style="text-align:center;color:#475569;padding:48px 0;font-size:14px">Nenhum incidente registrado</div>';
+    document.getElementById('badge-nav-inc').style.display='none';
+    document.getElementById('kpi-incidentes').textContent='0';
+    return;
+  }
+  document.getElementById('badge-nav-inc').textContent=lista.length;
+  document.getElementById('badge-nav-inc').style.display='';
+  document.getElementById('kpi-incidentes').textContent=lista.length;
   const prCls={CRITICA:'priori-critica',ALTA:'priori-alta',MEDIA:'priori-media',BAIXA:'priori-baixa'};
   document.getElementById('inc-lista').innerHTML=lista.map(inc=>`
     <div class="inc-card${inc.id===incSelecionado?' selecionado':''}" onclick="selecionarInc('${inc.id}')">
@@ -1363,7 +1393,12 @@ function descartarInc(id){
    HEATMAP
 ────────────────────────────────────────────────────────── */
 function renderHeatmap(){
-  document.getElementById('heat-grid').innerHTML=HEATMAP.map(h=>`
+  const el=document.getElementById('heat-grid');
+  if(!HEATMAP.length){
+    el.innerHTML='<div style="text-align:center;color:#475569;padding:32px;font-size:13px;grid-column:1/-1">Sem locais críticos — mapa será preenchido com os primeiros registros</div>';
+    return;
+  }
+  el.innerHTML=HEATMAP.map(h=>`
     <div class="heat-cell heat-${h.nivel}">
       <div class="heat-nome">${h.nome}</div>
       <div class="heat-cnt">${h.cnt} falha${h.cnt!==1?'s':''} / 30 dias</div>
@@ -1381,8 +1416,7 @@ function gerarPreview(){
   const deF =new Date(de+'T00:00').toLocaleDateString('pt-BR');
   const ateF=new Date(ate+'T00:00').toLocaleDateString('pt-BR');
 
-  // Stats simulados
-  const stats={total:143,ok:125,nok:18,conf:87.4,abertos:7,resolvidos:11};
+  const stats={total:0,ok:0,nok:0,conf:0,abertos:0,resolvidos:0};
 
   document.getElementById('pdf-preview').innerHTML=`
 <div id="pdf-preview-inner">
