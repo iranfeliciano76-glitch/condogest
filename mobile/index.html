@@ -1270,7 +1270,27 @@ function entrarSistema(email,u){
   // Atualiza foto de perfil do acesso rápido com selfie salva
   const fotoSalva=getPerfilFoto(email);
   if(fotoSalva) APP.usuario.foto=fotoSalva;
+  carregarChecklistsCustom();
   abrirTelaPonto();
+}
+
+function carregarChecklistsCustom(){
+  try{
+    const templates=JSON.parse(localStorage.getItem('cg_checklists_custom')||'[]');
+    templates.forEach(t=>{
+      const chave=t.categoria ? t.categoria.toLowerCase().replace(/\s+/g,'_') : 'custom_'+t.id;
+      if(!TODOS_ITENS[chave]){
+        TODOS_ITENS[chave]={titulo:t.nome, HORARIA:[],DIARIA:[],SEMANAL:[],MENSAL:[]};
+      }
+      const itens=t.itens.map(i=>({
+        id:i.id, label:i.label, ok:'check', nok:'x',
+        tokOk:i.tokOk||'OK', tokNok:i.tokNok||'PROBLEMA',
+        instrucao:i.instrucao||'',
+        fotoBase64:i.fotoBase64||''
+      }));
+      TODOS_ITENS[chave][t.frequencia||'DIARIA']=itens;
+    });
+  }catch(e){}
 }
 
 /* ─── SAIR / PERFIL ───────────────────────────────────── */
@@ -1762,8 +1782,8 @@ function renderItem(item,cat){
   const res=r?`<div class="item-resultado">${r==='OK'?'✓ OK':'✗ NOK'}</div>`:'';
   return`
   <div class="${cls}" id="card-${item.id}">
-    <img class="item-foto" src="${item.foto}" alt="${item.label}"
-         onerror="this.style.display='none'">
+    <img class="item-foto" src="${item.fotoBase64||item.foto||''}" alt="${item.label}"
+         onerror="this.style.display='none'" style="${item.fotoBase64||item.foto?'':'display:none'}"
     <div class="item-label">${item.label}</div>
     ${item.instrucao?`<div class="item-instrucao">${item.instrucao}</div>`:''}
     ${avisoMensal}

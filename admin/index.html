@@ -582,6 +582,11 @@ textarea.form-ctrl:focus{border-color:var(--azul)}
       Relatório de Ponto
     </div>
 
+    <div class="nav-item" onclick="nav('checklists')">
+      <span class="nav-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></span>
+      Checklists Personalizados
+    </div>
+
     <div class="nav-section" style="margin-top:8px">Sistema</div>
     <div class="nav-item" onclick="window.open('/mobile/','_blank')">
       <span class="nav-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg></span>
@@ -925,6 +930,67 @@ textarea.form-ctrl:focus{border-color:var(--azul)}
       </div>
     </div>
 
+    <!-- ─── SECTION: CHECKLISTS PERSONALIZADOS ──────────────── -->
+    <div id="sec-checklists" class="section">
+
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px;gap:16px;flex-wrap:wrap">
+        <div>
+          <h2 style="font-size:20px;font-weight:700;color:#f1f5f9;margin:0 0 4px">Checklists Personalizados</h2>
+          <p style="color:#94a3b8;font-size:13px;margin:0">Crie modelos de vistoria com fotos de referência para os fiscais</p>
+        </div>
+        <button class="btn-exportar" onclick="abrirBuilderChecklist(null)" style="background:#2563eb;color:#fff;border:none;padding:10px 20px;border-radius:8px;cursor:pointer;font-weight:600;font-size:13px;display:flex;align-items:center;gap:8px">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Novo Checklist
+        </button>
+      </div>
+
+      <!-- Lista de templates salvos -->
+      <div id="lista-chk-templates" style="display:grid;gap:12px"></div>
+      <p id="lista-chk-vazia" style="color:#64748b;text-align:center;padding:48px 0;display:none">Nenhum checklist criado ainda. Clique em <strong>Novo Checklist</strong> para começar.</p>
+
+      <!-- Builder -->
+      <div id="builder-chk" style="display:none;margin-top:24px">
+        <div style="background:#1e293b;border-radius:12px;padding:24px;border:1px solid #334155">
+          <h3 style="font-size:16px;font-weight:700;color:#f1f5f9;margin:0 0 20px" id="builder-chk-titulo">Novo Checklist</h3>
+
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:20px">
+            <div>
+              <label style="display:block;color:#94a3b8;font-size:12px;margin-bottom:6px">NOME DO CHECKLIST</label>
+              <input id="chk-nome" type="text" placeholder="ex: Vistoria de Portaria" style="width:100%;background:#0f172a;border:1px solid #334155;border-radius:8px;padding:10px 12px;color:#f1f5f9;font-size:14px;box-sizing:border-box">
+            </div>
+            <div>
+              <label style="display:block;color:#94a3b8;font-size:12px;margin-bottom:6px">CATEGORIA</label>
+              <input id="chk-categoria" type="text" placeholder="ex: Portaria, Garagem..." style="width:100%;background:#0f172a;border:1px solid #334155;border-radius:8px;padding:10px 12px;color:#f1f5f9;font-size:14px;box-sizing:border-box">
+            </div>
+            <div>
+              <label style="display:block;color:#94a3b8;font-size:12px;margin-bottom:6px">FREQUÊNCIA</label>
+              <select id="chk-frequencia" style="width:100%;background:#0f172a;border:1px solid #334155;border-radius:8px;padding:10px 12px;color:#f1f5f9;font-size:14px;box-sizing:border-box">
+                <option value="HORARIA">Horária</option>
+                <option value="DIARIA" selected>Diária</option>
+                <option value="SEMANAL">Semanal</option>
+                <option value="MENSAL">Mensal</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Itens do checklist -->
+          <div style="margin-bottom:16px">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+              <span style="color:#94a3b8;font-size:12px;font-weight:600">ITENS DA VISTORIA</span>
+              <button onclick="adicionarItemChk()" style="background:#0f172a;border:1px solid #334155;color:#60a5fa;padding:6px 14px;border-radius:6px;cursor:pointer;font-size:12px;font-weight:600">+ Adicionar Item</button>
+            </div>
+            <div id="builder-chk-itens" style="display:grid;gap:10px"></div>
+            <p id="builder-chk-vazio" style="color:#475569;font-size:13px;text-align:center;padding:20px 0">Clique em "Adicionar Item" para incluir pontos de vistoria</p>
+          </div>
+
+          <div style="display:flex;gap:10px;justify-content:flex-end">
+            <button onclick="fecharBuilderChecklist()" style="background:transparent;border:1px solid #334155;color:#94a3b8;padding:10px 20px;border-radius:8px;cursor:pointer;font-size:13px">Cancelar</button>
+            <button onclick="salvarTemplateChecklist()" style="background:#16a34a;border:none;color:#fff;padding:10px 24px;border-radius:8px;cursor:pointer;font-weight:600;font-size:13px">Salvar Checklist</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- ─── SECTION: CONFIGURAÇÕES (placeholder) ─────────────── -->
     <div id="sec-configuracoes" class="section">
       <div class="relatorio-config">
@@ -1094,7 +1160,7 @@ function atualizarData(){
 /* ──────────────────────────────────────────────────────────
    NAVEGAÇÃO
 ────────────────────────────────────────────────────────── */
-const NOMES_SECAO = {dashboard:'Dashboard',rondas:'Rondas em Tempo Real',triagem:'Central de Triagem',relatorios:'Emitir Relatório PDF',ponto:'Relatório de Ponto',configuracoes:'Configurações'};
+const NOMES_SECAO = {dashboard:'Dashboard',rondas:'Rondas em Tempo Real',triagem:'Central de Triagem',relatorios:'Emitir Relatório PDF',ponto:'Relatório de Ponto',checklists:'Checklists Personalizados',configuracoes:'Configurações'};
 function nav(sec){
   document.querySelectorAll('.nav-item').forEach(el=>el.classList.remove('ativo'));
   event.currentTarget.classList.add('ativo');
@@ -1102,6 +1168,7 @@ function nav(sec){
   document.getElementById('sec-'+sec).classList.add('ativa');
   document.getElementById('topbar-titulo').textContent=NOMES_SECAO[sec]||sec;
   if(sec==='ponto'){ iniciarFiltroPonto(); carregarPontos(); }
+  if(sec==='checklists'){ carregarTemplatesChecklist(); }
 }
 
 /* ──────────────────────────────────────────────────────────
@@ -1758,6 +1825,188 @@ async function exportarPDF(){
     w.print();
   }
   btn.textContent='⬇ Exportar PDF';btn.disabled=false;
+}
+
+/* ══════════════════════════════════════════════════════════
+   CHECKLISTS PERSONALIZADOS
+══════════════════════════════════════════════════════════ */
+let chkEditandoId = null;
+const CHK_KEY = 'cg_checklists_custom';
+
+function carregarTemplatesChecklist(){
+  const templates = JSON.parse(localStorage.getItem(CHK_KEY)||'[]');
+  const lista = document.getElementById('lista-chk-templates');
+  const vazia = document.getElementById('lista-chk-vazia');
+  if(!lista) return;
+  if(!templates.length){ lista.innerHTML=''; vazia.style.display='block'; return; }
+  vazia.style.display='none';
+  const FREQ_LABEL={HORARIA:'Horária',DIARIA:'Diária',SEMANAL:'Semanal',MENSAL:'Mensal'};
+  lista.innerHTML = templates.map(t=>`
+    <div style="background:#1e293b;border:1px solid #334155;border-radius:10px;padding:18px 20px;display:flex;align-items:center;gap:16px">
+      <div style="flex:1">
+        <div style="font-weight:700;color:#f1f5f9;font-size:15px;margin-bottom:4px">${t.nome}</div>
+        <div style="color:#64748b;font-size:12px">${t.categoria||'—'} &nbsp;·&nbsp; ${FREQ_LABEL[t.frequencia]||t.frequencia} &nbsp;·&nbsp; ${t.itens.length} item(ns)</div>
+      </div>
+      <div style="display:flex;gap:8px">
+        <button onclick="exportarChkMobile('${t.id}')" title="Enviar para app" style="background:#0f172a;border:1px solid #334155;color:#60a5fa;padding:7px 12px;border-radius:6px;cursor:pointer;font-size:12px">App Mobile</button>
+        <button onclick="abrirBuilderChecklist('${t.id}')" style="background:#0f172a;border:1px solid #334155;color:#94a3b8;padding:7px 12px;border-radius:6px;cursor:pointer;font-size:12px">Editar</button>
+        <button onclick="excluirTemplateChecklist('${t.id}')" style="background:#0f172a;border:1px solid #450a0a;color:#f87171;padding:7px 12px;border-radius:6px;cursor:pointer;font-size:12px">Excluir</button>
+      </div>
+    </div>`).join('');
+}
+
+function abrirBuilderChecklist(id){
+  const templates = JSON.parse(localStorage.getItem(CHK_KEY)||'[]');
+  const t = id ? templates.find(x=>x.id===id) : null;
+  chkEditandoId = id||null;
+  document.getElementById('builder-chk-titulo').textContent = t ? 'Editar Checklist' : 'Novo Checklist';
+  document.getElementById('chk-nome').value = t?.nome||'';
+  document.getElementById('chk-categoria').value = t?.categoria||'';
+  document.getElementById('chk-frequencia').value = t?.frequencia||'DIARIA';
+  document.getElementById('builder-chk-itens').innerHTML='';
+  if(t?.itens?.length){
+    t.itens.forEach(item=>adicionarItemChk(item));
+  }
+  atualizarVisibilidadeItens();
+  document.getElementById('builder-chk').style.display='block';
+  document.getElementById('builder-chk').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function fecharBuilderChecklist(){
+  document.getElementById('builder-chk').style.display='none';
+  chkEditandoId=null;
+}
+
+let chkItemCount=0;
+function adicionarItemChk(dados){
+  const id='chk-item-'+Date.now()+'-'+(chkItemCount++);
+  const container=document.getElementById('builder-chk-itens');
+  const d=dados||{};
+  const div=document.createElement('div');
+  div.id=id;
+  div.style.cssText='background:#0f172a;border:1px solid #1e293b;border-radius:8px;padding:14px;display:grid;gap:10px';
+  div.innerHTML=`
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <div>
+        <label style="display:block;color:#64748b;font-size:11px;margin-bottom:4px">DESCRIÇÃO DO ITEM *</label>
+        <input class="chk-item-label" type="text" placeholder="ex: Extintor do corredor" value="${d.label||''}"
+          style="width:100%;background:#1e293b;border:1px solid #334155;border-radius:6px;padding:8px 10px;color:#f1f5f9;font-size:13px;box-sizing:border-box">
+      </div>
+      <div>
+        <label style="display:block;color:#64748b;font-size:11px;margin-bottom:4px">INSTRUÇÃO PARA O FISCAL</label>
+        <input class="chk-item-instrucao" type="text" placeholder="ex: Verifique o manômetro" value="${d.instrucao||''}"
+          style="width:100%;background:#1e293b;border:1px solid #334155;border-radius:6px;padding:8px 10px;color:#f1f5f9;font-size:13px;box-sizing:border-box">
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:10px;align-items:end">
+      <div>
+        <label style="display:block;color:#64748b;font-size:11px;margin-bottom:4px">TOKEN OK</label>
+        <input class="chk-item-tokOk" type="text" placeholder="ex: OK" value="${d.tokOk||'OK'}"
+          style="width:100%;background:#1e293b;border:1px solid #334155;border-radius:6px;padding:8px 10px;color:#f1f5f9;font-size:13px;box-sizing:border-box">
+      </div>
+      <div>
+        <label style="display:block;color:#64748b;font-size:11px;margin-bottom:4px">TOKEN NOK</label>
+        <input class="chk-item-tokNok" type="text" placeholder="ex: PROBLEMA" value="${d.tokNok||'PROBLEMA'}"
+          style="width:100%;background:#1e293b;border:1px solid #334155;border-radius:6px;padding:8px 10px;color:#f1f5f9;font-size:13px;box-sizing:border-box">
+      </div>
+      <div>
+        <label style="display:block;color:#64748b;font-size:11px;margin-bottom:4px">FOTO DE REFERÊNCIA</label>
+        <div style="display:flex;align-items:center;gap:8px">
+          <img class="chk-item-foto-preview" src="${d.fotoBase64||''}" alt=""
+            style="width:44px;height:44px;object-fit:cover;border-radius:6px;background:#1e293b;border:1px solid #334155;display:${d.fotoBase64?'block':'none'}">
+          <label style="cursor:pointer;background:#1e293b;border:1px dashed #475569;color:#60a5fa;padding:8px 10px;border-radius:6px;font-size:12px;white-space:nowrap">
+            ${d.fotoBase64?'Trocar':'+ Foto'}
+            <input type="file" accept="image/*" style="display:none" onchange="previewFotoItemChk(this,'${id}')">
+          </label>
+        </div>
+      </div>
+      <div>
+        <button onclick="removerItemChk('${id}')" title="Remover item"
+          style="background:transparent;border:1px solid #450a0a;color:#f87171;width:36px;height:36px;border-radius:6px;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center">✕</button>
+      </div>
+    </div>`;
+  if(d.fotoBase64) div.querySelector('.chk-item-foto-preview').src=d.fotoBase64;
+  container.appendChild(div);
+  atualizarVisibilidadeItens();
+}
+
+function previewFotoItemChk(input, itemId){
+  const file=input.files[0];
+  if(!file) return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    const div=document.getElementById(itemId);
+    if(!div) return;
+    const img=div.querySelector('.chk-item-foto-preview');
+    img.src=e.target.result;
+    img.style.display='block';
+    div.dataset.fotoBase64=e.target.result;
+    div.querySelector('label > input[type=file]').previousElementSibling
+      && (div.querySelector('label').childNodes[0].textContent='Trocar');
+  };
+  reader.readAsDataURL(file);
+}
+
+function removerItemChk(id){
+  const el=document.getElementById(id);
+  if(el) el.remove();
+  atualizarVisibilidadeItens();
+}
+
+function atualizarVisibilidadeItens(){
+  const container=document.getElementById('builder-chk-itens');
+  const vazio=document.getElementById('builder-chk-vazio');
+  if(container&&vazio) vazio.style.display=container.children.length?'none':'block';
+}
+
+function salvarTemplateChecklist(){
+  const nome=document.getElementById('chk-nome').value.trim();
+  const categoria=document.getElementById('chk-categoria').value.trim();
+  const frequencia=document.getElementById('chk-frequencia').value;
+  if(!nome){ alert('Informe o nome do checklist'); return; }
+  const itemEls=document.querySelectorAll('#builder-chk-itens > div');
+  if(!itemEls.length){ alert('Adicione pelo menos 1 item'); return; }
+  const itens=[];
+  let valido=true;
+  itemEls.forEach((el,i)=>{
+    const label=el.querySelector('.chk-item-label').value.trim();
+    if(!label){ valido=false; return; }
+    itens.push({
+      id:'ci_'+Date.now()+'_'+i,
+      label,
+      instrucao:el.querySelector('.chk-item-instrucao').value.trim(),
+      tokOk:el.querySelector('.chk-item-tokOk').value.trim()||'OK',
+      tokNok:el.querySelector('.chk-item-tokNok').value.trim()||'PROBLEMA',
+      ok:'check', nok:'x',
+      fotoBase64:el.dataset.fotoBase64||''
+    });
+  });
+  if(!valido){ alert('Preencha a descrição de todos os itens'); return; }
+  const templates=JSON.parse(localStorage.getItem(CHK_KEY)||'[]');
+  if(chkEditandoId){
+    const idx=templates.findIndex(x=>x.id===chkEditandoId);
+    if(idx>=0) templates[idx]={...templates[idx],nome,categoria,frequencia,itens,atualizadoEm:new Date().toISOString()};
+  } else {
+    templates.push({id:'chk_'+Date.now(),nome,categoria,frequencia,itens,criadoEm:new Date().toISOString()});
+  }
+  localStorage.setItem(CHK_KEY,JSON.stringify(templates));
+  fecharBuilderChecklist();
+  carregarTemplatesChecklist();
+}
+
+function excluirTemplateChecklist(id){
+  if(!confirm('Excluir este checklist?')) return;
+  const templates=JSON.parse(localStorage.getItem(CHK_KEY)||'[]').filter(x=>x.id!==id);
+  localStorage.setItem(CHK_KEY,JSON.stringify(templates));
+  carregarTemplatesChecklist();
+}
+
+function exportarChkMobile(id){
+  // Sincroniza o template para a chave que o mobile lê
+  const templates=JSON.parse(localStorage.getItem(CHK_KEY)||'[]');
+  const t=templates.find(x=>x.id===id);
+  if(!t){ alert('Template não encontrado'); return; }
+  alert('Checklist "'+t.nome+'" disponível no app mobile na próxima abertura.');
 }
 </script>
 </body>
