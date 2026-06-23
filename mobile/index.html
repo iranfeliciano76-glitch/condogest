@@ -1,0 +1,2091 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0f172a">
+<title>CondoGest — Fiscal de Piso</title>
+<link rel="manifest" href="/manifest.json">
+<meta name="robots" content="noindex, nofollow">
+<!-- Lucide Icons -->
+<script src="https://cdn.jsdelivr.net/npm/lucide@0.344.0/dist/umd/lucide.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
+:root{
+  --verde:#16a34a;--azul:#1d4ed8;--amarelo:#d97706;
+  --vermelho:#dc2626;--roxo:#7c3aed;--laranja:#ea580c;
+  --bg:#0f172a;--texto:#f1f5f9;--sub:rgba(255,255,255,.55)
+}
+html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--texto);
+  font-family:'Segoe UI',system-ui,-apple-system,sans-serif;user-select:none}
+.tela{position:fixed;inset:0;display:none;flex-direction:column;overflow:hidden}
+.tela.ativa{display:flex}
+/* min-height:0 é obrigatório para overflow-y funcionar dentro de flex */
+.scroll{overflow-y:auto;-webkit-overflow-scrolling:touch;flex:1;min-height:0;overscroll-behavior:contain}
+
+/* ── ÍCONES LUCIDE ──────────────────────────────────── */
+.ic{display:inline-flex;align-items:center;justify-content:center}
+.ic svg{stroke-width:2;fill:none;stroke:currentColor}
+
+/* ══════════════════════════════════════════════════════
+   TELA LOGIN
+══════════════════════════════════════════════════════ */
+#tela-login{
+  background:#020617;
+  justify-content:flex-start;align-items:center;
+  overflow-y:auto;overflow-x:hidden;
+  -webkit-overflow-scrolling:touch
+}
+.login-bg{
+  position:absolute;inset:0;
+  background:url('https://images.unsplash.com/photo-1486325212027-8081e485255e?w=800&q=70&fit=crop') center/cover;
+  opacity:.18
+}
+.login-inner{
+  position:relative;z-index:1;width:100%;max-width:400px;
+  padding:40px 24px 40px;display:flex;flex-direction:column;align-items:center;gap:0
+}
+.login-logo{
+  width:64px;height:64px;border-radius:18px;
+  background:linear-gradient(135deg,#1d4ed8,#7c3aed);
+  display:flex;align-items:center;justify-content:center;
+  margin-bottom:20px;box-shadow:0 8px 32px rgba(37,99,235,.35)
+}
+.login-logo svg{width:34px;height:34px;stroke:#fff;stroke-width:1.8}
+.login-title{font-size:26px;font-weight:900;letter-spacing:-.4px;text-align:center}
+.login-domain{font-size:12px;color:var(--sub);margin-top:4px;margin-bottom:36px;text-align:center}
+.login-form{width:100%;display:flex;flex-direction:column;gap:14px}
+.campo-wrap{position:relative}
+.campo-icon{
+  position:absolute;left:14px;top:50%;transform:translateY(-50%);
+  color:rgba(255,255,255,.35)
+}
+.campo-icon svg{width:18px;height:18px}
+.campo-wrap input{
+  width:100%;padding:15px 14px 15px 44px;
+  background:rgba(255,255,255,.07);border:1.5px solid rgba(255,255,255,.12);
+  border-radius:14px;color:#fff;font-size:16px;outline:none;transition:border .2s
+}
+.campo-wrap input:focus{border-color:rgba(99,102,241,.7);background:rgba(255,255,255,.1)}
+.campo-wrap input::placeholder{color:rgba(255,255,255,.3)}
+.login-erro{
+  background:rgba(220,38,38,.2);border:1px solid rgba(220,38,38,.4);
+  border-radius:10px;padding:10px 14px;font-size:13px;font-weight:600;
+  color:#fca5a5;display:none
+}
+.login-erro.visivel{display:block}
+.btn-entrar{
+  width:100%;padding:16px;border-radius:14px;border:none;
+  background:linear-gradient(135deg,#1d4ed8,#4f46e5);
+  color:#fff;font-size:17px;font-weight:800;cursor:pointer;
+  box-shadow:0 4px 20px rgba(37,99,235,.4);transition:transform .1s,filter .1s
+}
+.btn-entrar:active{transform:scale(.97);filter:brightness(.9)}
+.btn-ponto:active{transform:scale(.95)!important;filter:brightness(.85)}
+.ponto-registro{
+  background:rgba(255,255,255,.06);border-radius:12px;padding:11px 14px;
+  display:flex;align-items:center;gap:10px;border:1px solid rgba(255,255,255,.08)
+}
+.ponto-tipo-icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.ponto-hora{font-size:15px;font-weight:800;color:#f1f5f9}
+.ponto-label{font-size:11px;color:rgba(255,255,255,.45);margin-top:1px}
+.login-divider{
+  display:flex;align-items:center;gap:12px;width:100%;margin:8px 0
+}
+.login-divider::before,.login-divider::after{
+  content:'';flex:1;height:1px;background:rgba(255,255,255,.1)
+}
+.login-divider span{font-size:12px;color:var(--sub);white-space:nowrap}
+.acesso-rapido{
+  display:grid;grid-template-columns:repeat(3,1fr);gap:10px;width:100%
+}
+.ar-card{
+  background:rgba(255,255,255,.06);border-radius:14px;padding:12px 6px;
+  text-align:center;cursor:pointer;border:1.5px solid transparent;
+  transition:all .15s
+}
+.ar-card:active{transform:scale(.9);background:rgba(255,255,255,.14)}
+.ar-card img{
+  width:52px;height:52px;border-radius:50%;object-fit:cover;
+  border:2px solid rgba(255,255,255,.2);margin-bottom:8px;
+  display:block;margin-left:auto;margin-right:auto
+}
+.ar-nome{font-size:11px;font-weight:700;line-height:1.2;color:#e2e8f0}
+.ar-cargo{font-size:10px;color:var(--sub);margin-top:2px}
+.ar-badge{
+  display:inline-block;font-size:9px;font-weight:700;padding:2px 6px;
+  border-radius:6px;margin-top:4px
+}
+.badge-fiscal{background:rgba(22,163,74,.25);color:#86efac}
+.badge-asg   {background:rgba(37,99,235,.25);color:#93c5fd}
+.badge-admin {background:rgba(124,58,237,.25);color:#c4b5fd}
+.badge-super {background:rgba(220,38,38,.25);color:#fca5a5}
+
+/* ══════════════════════════════════════════════════════
+   TELA TIPO DE VERIFICAÇÃO
+══════════════════════════════════════════════════════ */
+#tela-tipo{
+  background:linear-gradient(160deg,#020617,#0c1a3d 60%,#0f172a);
+  align-items:center;overflow-y:auto
+}
+.tipo-header{
+  width:100%;padding:env(safe-area-inset-top,16px) 20px 0;
+  display:flex;align-items:center;gap:12px
+}
+.tipo-header img{width:42px;height:42px;border-radius:50%;object-fit:cover;border:2px solid rgba(255,255,255,.2)}
+.tipo-header-info{flex:1}
+.tipo-header-nome{font-size:16px;font-weight:700}
+.tipo-header-cargo{font-size:12px;color:var(--sub)}
+.tipo-conteudo{
+  padding:28px 18px 20px;width:100%;max-width:460px;
+  display:flex;flex-direction:column;gap:12px;align-items:center
+}
+.tipo-instrucao{font-size:21px;font-weight:800;text-align:center;margin-bottom:6px;line-height:1.3}
+.tipo-card{
+  width:100%;border-radius:20px;padding:18px 20px;cursor:pointer;
+  display:flex;align-items:center;gap:16px;transition:transform .12s
+}
+.tipo-card:active{transform:scale(.95)}
+.tipo-horaria {background:linear-gradient(135deg,#3b0764,#7c3aed)}
+.tipo-diaria  {background:linear-gradient(135deg,#1e3a8a,#1d4ed8)}
+.tipo-semanal {background:linear-gradient(135deg,#78350f,#d97706)}
+.tipo-mensal  {background:linear-gradient(135deg,#7f1d1d,#dc2626)}
+.tipo-card-icon{
+  width:52px;height:52px;border-radius:14px;
+  background:rgba(255,255,255,.15);display:flex;align-items:center;justify-content:center;
+  flex-shrink:0
+}
+.tipo-card-icon svg{width:26px;height:26px;stroke:#fff;stroke-width:1.8}
+.tipo-card-txt{flex:1}
+.tipo-card-nome{font-size:18px;font-weight:900;line-height:1}
+.tipo-card-desc{font-size:12px;opacity:.75;margin-top:4px;line-height:1.4}
+.tipo-card-badge{
+  font-size:10px;font-weight:700;background:rgba(0,0,0,.25);
+  border-radius:8px;padding:3px 10px;margin-top:6px;display:inline-block
+}
+
+/* ══════════════════════════════════════════════════════
+   HEADER GERAL
+══════════════════════════════════════════════════════ */
+.header{
+  display:flex;align-items:center;gap:12px;
+  padding:env(safe-area-inset-top,14px) 16px 14px;
+  background:rgba(0,0,0,.5);backdrop-filter:blur(14px);
+  position:sticky;top:0;z-index:50;flex-shrink:0
+}
+.header img{width:44px;height:44px;border-radius:50%;border:2px solid rgba(255,255,255,.2);object-fit:cover;flex-shrink:0}
+.header-info{flex:1;min-width:0}
+.header-nome{font-size:16px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.header-sub {font-size:11px;color:var(--sub);margin-top:1px}
+.header-hora{font-size:19px;font-weight:800;color:var(--sub);font-variant-numeric:tabular-nums;flex-shrink:0}
+.btn-voltar{
+  width:44px;height:44px;border-radius:50%;border:none;
+  background:rgba(255,255,255,.1);color:#fff;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0
+}
+.btn-voltar svg{width:22px;height:22px;stroke:#fff;stroke-width:2.5;fill:none}
+.progresso-wrap{height:4px;background:rgba(255,255,255,.07);flex-shrink:0}
+.progresso-bar{height:4px;background:linear-gradient(90deg,var(--verde),#86efac);transition:width .4s;width:0}
+
+/* ══════════════════════════════════════════════════════
+   HOME — BLOCOS
+══════════════════════════════════════════════════════ */
+#tela-home{background:var(--bg)}
+.home-grid{
+  display:grid;grid-template-columns:1fr 1fr;grid-template-rows:auto auto auto;
+  gap:11px;padding:14px;flex:1
+}
+.bloco{
+  border-radius:24px;padding:26px 14px 20px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  cursor:pointer;min-height:150px;box-shadow:0 6px 24px rgba(0,0,0,.4);
+  transition:transform .12s;position:relative;overflow:hidden
+}
+.bloco:active{transform:scale(.92)}
+.bloco-limpeza  {background:linear-gradient(145deg,#14532d,#16a34a,#22c55e)}
+.bloco-seguranca{background:linear-gradient(145deg,#1e3a8a,#1d4ed8,#3b82f6)}
+.bloco-estrutura{background:linear-gradient(145deg,#92400e,#d97706,#fbbf24)}
+.bloco-incendio {background:linear-gradient(145deg,#7f1d1d,#dc2626,#f87171)}
+.bloco-relatar  {
+  grid-column:1/-1;
+  background:linear-gradient(145deg,#7c2d12,#ea580c,#fb923c);
+  min-height:88px;flex-direction:row;gap:16px;padding:18px 24px
+}
+.bloco-icon-wrap{
+  width:60px;height:60px;border-radius:18px;
+  background:rgba(255,255,255,.18);
+  display:flex;align-items:center;justify-content:center;margin-bottom:12px
+}
+.bloco-relatar .bloco-icon-wrap{width:48px;height:48px;border-radius:14px;margin:0}
+.bloco-icon-wrap svg{width:30px;height:30px;stroke:#fff;stroke-width:1.8;fill:none}
+.bloco-relatar .bloco-icon-wrap svg{width:24px;height:24px}
+.bloco-label{font-size:15px;font-weight:900;text-align:center;line-height:1.2}
+.bloco-relatar .bloco-label{font-size:18px;text-align:left}
+.bloco-badge{
+  position:absolute;top:10px;right:10px;
+  background:rgba(0,0,0,.35);border-radius:10px;
+  padding:3px 9px;font-size:11px;font-weight:700
+}
+.badge-completo{color:#86efac}
+.badge-parcial {color:#fcd34d}
+.badge-vazio   {color:rgba(255,255,255,.45)}
+
+/* PÂNICO */
+.panico-wrap{
+  padding:10px 14px calc(env(safe-area-inset-bottom,10px)+10px);
+  background:rgba(0,0,0,.4);flex-shrink:0
+}
+.btn-panico{
+  width:100%;height:72px;border-radius:20px;border:none;cursor:pointer;
+  background:linear-gradient(145deg,#7f1d1d,#dc2626,#ef4444);
+  color:#fff;font-size:20px;font-weight:900;letter-spacing:.04em;
+  display:flex;align-items:center;justify-content:center;gap:14px;
+  box-shadow:0 4px 20px rgba(220,38,38,.45);transition:transform .1s
+}
+.btn-panico:active{transform:scale(.95)}
+.btn-panico svg{width:28px;height:28px;stroke:#fff;stroke-width:2.5}
+
+/* ══════════════════════════════════════════════════════
+   CHECKLIST
+══════════════════════════════════════════════════════ */
+#tela-checklist{background:var(--bg)}
+.checklist-itens{display:flex;flex-direction:column;gap:12px;padding:14px}
+.item-card{
+  background:rgba(255,255,255,.06);border-radius:20px;padding:18px;
+  border:1.5px solid rgba(255,255,255,.07);transition:border-color .2s,background .2s
+}
+.item-card.ok {border-color:#22c55e;background:rgba(34,197,94,.08)}
+.item-card.nok{border-color:#ef4444;background:rgba(239,68,68,.08)}
+.item-foto{
+  width:100%;height:140px;border-radius:12px;object-fit:cover;
+  margin-bottom:14px;border:1px solid rgba(255,255,255,.1);
+  display:block;background:#1e293b
+}
+.item-label{font-size:19px;font-weight:800;text-align:center;margin-bottom:14px}
+.item-instrucao{
+  font-size:12px;color:var(--sub);text-align:center;margin-bottom:14px;
+  line-height:1.5;background:rgba(255,255,255,.04);border-radius:8px;padding:8px 12px
+}
+.item-botoes{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.btn-ok,.btn-nok{
+  border:none;border-radius:16px;padding:18px 8px;color:#fff;cursor:pointer;
+  display:flex;flex-direction:column;align-items:center;gap:7px;transition:transform .1s
+}
+.btn-ok {background:linear-gradient(145deg,#14532d,#22c55e);box-shadow:0 4px 12px rgba(34,197,94,.3)}
+.btn-nok{background:linear-gradient(145deg,#7f1d1d,#ef4444);box-shadow:0 4px 12px rgba(239,68,68,.3)}
+.btn-ok:active,.btn-nok:active{transform:scale(.9)}
+.btn-icon svg{width:32px;height:32px;stroke:#fff;stroke-width:2}
+.btn-texto{font-size:12px;font-weight:800;opacity:.9}
+.item-resultado{
+  text-align:center;font-size:42px;margin-top:10px;
+  animation:pop .3s cubic-bezier(.17,.67,.29,1.5)
+}
+@keyframes pop{from{transform:scale(0)}to{transform:scale(1)}}
+.mensal-aviso{
+  background:rgba(220,38,38,.15);border:1px solid rgba(220,38,38,.3);
+  border-radius:8px;padding:8px 12px;font-size:11px;font-weight:600;
+  color:#fca5a5;text-align:center;margin-bottom:10px
+}
+
+/* ══════════════════════════════════════════════════════
+   CÂMERA
+══════════════════════════════════════════════════════ */
+#tela-camera{background:#000;align-items:center;justify-content:center}
+#cam-video{width:100%;max-height:100vh;object-fit:cover}
+#cam-canvas{display:none}
+.cam-overlay{
+  position:fixed;inset:0;display:flex;flex-direction:column;
+  justify-content:space-between;
+  padding:env(safe-area-inset-top,20px) 20px calc(env(safe-area-inset-bottom,20px)+20px)
+}
+.cam-instrucao{
+  background:rgba(0,0,0,.75);border-radius:16px;padding:13px 18px;
+  font-size:18px;font-weight:700;text-align:center;backdrop-filter:blur(4px)
+}
+.cam-acoes{display:flex;align-items:center;justify-content:center;gap:28px}
+.btn-capture{
+  width:80px;height:80px;border-radius:50%;border:4px solid #fff;background:#fff;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  box-shadow:0 4px 18px rgba(0,0,0,.5);transition:transform .1s
+}
+.btn-capture:active{transform:scale(.88)}
+.btn-capture svg{width:32px;height:32px;stroke:#111;stroke-width:2}
+.btn-cam-cancel{
+  background:rgba(0,0,0,.5);border:1.5px solid rgba(255,255,255,.3);border-radius:50%;
+  width:52px;height:52px;color:#fff;cursor:pointer;
+  display:flex;align-items:center;justify-content:center
+}
+.btn-cam-cancel svg{width:20px;height:20px;stroke:#fff}
+
+/* ══════════════════════════════════════════════════════
+   ÁUDIO
+══════════════════════════════════════════════════════ */
+#tela-audio{
+  background:linear-gradient(160deg,#1e1b4b,#312e81,#1e1b4b);
+  align-items:center;justify-content:center;gap:22px;padding:32px 24px
+}
+.audio-icon-wrap{
+  width:100px;height:100px;border-radius:50%;
+  background:rgba(99,102,241,.25);border:2px solid rgba(99,102,241,.4);
+  display:flex;align-items:center;justify-content:center;
+  animation:pulsar 1.2s ease-in-out infinite alternate
+}
+@keyframes pulsar{from{transform:scale(1)}to{transform:scale(1.08)}}
+.audio-icon-wrap svg{width:48px;height:48px;stroke:#a5b4fc;stroke-width:1.8}
+.audio-titulo{font-size:24px;font-weight:900;text-align:center;color:#e0e7ff}
+.audio-sub   {font-size:16px;text-align:center;color:var(--sub)}
+.audio-timer {font-size:50px;font-weight:900;color:#a5b4fc;font-variant-numeric:tabular-nums}
+.onda{display:flex;align-items:center;gap:4px;height:64px}
+.onda span{display:block;width:5px;background:#6366f1;border-radius:3px;animation:onda .7s ease-in-out infinite alternate}
+@keyframes onda{0%{height:5px}100%{height:52px}}
+.btn-stop{
+  width:108px;height:108px;border-radius:50%;border:none;
+  background:linear-gradient(145deg,#4338ca,#7c3aed);color:#fff;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  box-shadow:0 6px 28px rgba(124,58,237,.5);transition:transform .1s
+}
+.btn-stop:active{transform:scale(.9)}
+.btn-stop svg{width:44px;height:44px;stroke:#fff;stroke-width:2}
+
+/* ══════════════════════════════════════════════════════
+   CONFIRMAÇÃO
+══════════════════════════════════════════════════════ */
+#tela-ok{
+  background:linear-gradient(160deg,#052e16,#14532d);
+  align-items:center;justify-content:center;gap:22px;padding:32px
+}
+.ok-icon-wrap{
+  width:120px;height:120px;border-radius:50%;
+  background:rgba(34,197,94,.2);border:3px solid rgba(34,197,94,.4);
+  display:flex;align-items:center;justify-content:center;
+  animation:pop .5s cubic-bezier(.17,.67,.29,1.5)
+}
+.ok-icon-wrap svg{width:60px;height:60px;stroke:#86efac;stroke-width:2}
+.ok-titulo{font-size:32px;font-weight:900;color:#86efac;text-align:center}
+.ok-sub   {font-size:17px;text-align:center;color:var(--sub);line-height:1.5}
+
+/* ══════════════════════════════════════════════════════
+   OVERLAY PÂNICO
+══════════════════════════════════════════════════════ */
+#overlay-panico{
+  position:fixed;inset:0;z-index:9999;background:#dc2626;
+  display:none;flex-direction:column;align-items:center;justify-content:center;
+  gap:20px;padding:32px;animation:panico-pulso .6s ease infinite alternate
+}
+@keyframes panico-pulso{from{background:#dc2626}to{background:#7f1d1d}}
+#overlay-panico.visivel{display:flex}
+.panico-big-icon{
+  width:120px;height:120px;border-radius:50%;
+  background:rgba(255,255,255,.15);border:3px solid rgba(255,255,255,.4);
+  display:flex;align-items:center;justify-content:center
+}
+.panico-big-icon svg{width:60px;height:60px;stroke:#fff;stroke-width:2}
+.panico-big-txt{font-size:36px;font-weight:900;text-align:center;line-height:1.1}
+.panico-sub    {font-size:18px;text-align:center;opacity:.85;line-height:1.5}
+.btn-fechar-panico{
+  margin-top:16px;background:rgba(255,255,255,.15);border:2px solid rgba(255,255,255,.5);
+  border-radius:20px;padding:15px 40px;color:#fff;font-size:19px;font-weight:700;cursor:pointer
+}
+
+/* TOAST */
+#toast{
+  position:fixed;bottom:110px;left:50%;transform:translateX(-50%);
+  background:rgba(15,23,42,.94);color:#fff;padding:11px 22px;
+  border-radius:50px;font-size:14px;font-weight:700;z-index:5000;
+  pointer-events:none;opacity:0;transition:opacity .25s;white-space:nowrap
+}
+#toast.visivel{opacity:1}
+
+/* ══════════════════════════════════════════════════════
+   TELA ÁREAS DINÂMICAS
+══════════════════════════════════════════════════════ */
+.btn-add-area{
+  background:rgba(255,255,255,.12);border:1.5px solid rgba(255,255,255,.2);
+  color:#fff;border-radius:10px;padding:8px 13px;font-size:12px;font-weight:800;
+  cursor:pointer;display:flex;align-items:center;gap:5px;white-space:nowrap;flex-shrink:0
+}
+.btn-add-area svg{width:15px;height:15px;stroke:#fff;stroke-width:2.5;flex-shrink:0}
+.areas-vazio{
+  text-align:center;padding:40px 24px;color:rgba(255,255,255,.3);
+  font-size:14px;line-height:1.6
+}
+.areas-vazio svg{width:48px;height:48px;stroke:rgba(255,255,255,.15);stroke-width:1.5;margin-bottom:12px}
+.area-card{
+  background:rgba(255,255,255,.06);border-radius:18px;padding:16px 14px;
+  display:flex;align-items:center;gap:12px;
+  border:1.5px solid rgba(255,255,255,.07);cursor:pointer;
+  transition:transform .1s,background .14s;position:relative;overflow:hidden
+}
+.area-card:active{transform:scale(.97)}
+.area-card.area-ok {border-color:rgba(34,197,94,.5);background:rgba(34,197,94,.07)}
+.area-card.area-nok{border-color:rgba(239,68,68,.5);background:rgba(239,68,68,.07)}
+.area-num{
+  width:38px;height:38px;border-radius:11px;background:rgba(255,255,255,.08);
+  display:flex;align-items:center;justify-content:center;
+  font-size:16px;font-weight:900;color:rgba(255,255,255,.45);flex-shrink:0
+}
+.area-ok  .area-num{background:rgba(34,197,94,.2);color:#86efac}
+.area-nok .area-num{background:rgba(239,68,68,.2);color:#fca5a5}
+.area-info{flex:1;min-width:0;padding-right:22px}
+.area-nome{font-size:15px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.area-status-txt{font-size:11px;color:rgba(255,255,255,.4);margin-top:3px}
+.area-ok  .area-status-txt{color:#86efac}
+.area-nok .area-status-txt{color:#fca5a5}
+.area-status-icon{display:flex;align-items:center;flex-shrink:0}
+.area-del-btn{
+  position:absolute;top:8px;right:8px;background:transparent;border:none;
+  cursor:pointer;padding:6px;border-radius:8px;display:flex;align-items:center
+}
+.area-del-btn:active{background:rgba(255,255,255,.1)}
+.area-chevron{opacity:.4}
+.lojas-resumo{
+  border-radius:16px;padding:14px 16px;display:flex;align-items:center;gap:12px;
+  margin-bottom:6px
+}
+.lojas-ok    {background:rgba(34,197,94,.1);border:1.5px solid rgba(34,197,94,.3);color:#86efac}
+.lojas-alerta{background:rgba(220,38,38,.1);border:1.5px solid rgba(220,38,38,.3);color:#fca5a5}
+/* Modal nova area */
+.modal-area-overlay{
+  position:fixed;inset:0;z-index:3000;background:rgba(0,0,0,.65);
+  display:none;align-items:flex-end;justify-content:center;backdrop-filter:blur(4px)
+}
+.modal-area-overlay.visivel{display:flex}
+.modal-area-card{
+  width:100%;max-width:480px;background:#1e293b;
+  border-radius:24px 24px 0 0;
+  padding:28px 24px calc(env(safe-area-inset-bottom,16px)+24px)
+}
+.modal-area-titulo{font-size:18px;font-weight:900;margin-bottom:18px}
+.modal-area-input{
+  width:100%;padding:15px 16px;background:rgba(255,255,255,.07);
+  border:1.5px solid rgba(255,255,255,.15);border-radius:14px;
+  color:#fff;font-size:16px;outline:none;font-family:inherit;margin-bottom:14px
+}
+.modal-area-input:focus{border-color:rgba(99,102,241,.6)}
+.modal-area-input::placeholder{color:rgba(255,255,255,.3)}
+.modal-area-btns{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.btn-modal-cancel {padding:14px;border-radius:12px;border:1.5px solid rgba(255,255,255,.15);background:transparent;color:rgba(255,255,255,.6);font-size:15px;font-weight:700;cursor:pointer}
+.btn-modal-confirm{padding:14px;border-radius:12px;border:none;background:linear-gradient(135deg,#1d4ed8,#4f46e5);color:#fff;font-size:15px;font-weight:800;cursor:pointer}
+/* Bloco cores novas */
+.bloco-corredores{background:linear-gradient(145deg,#1e3a8a,#1d4ed8,#3b82f6)}
+.bloco-estac     {background:linear-gradient(145deg,#78350f,#d97706,#fbbf24)}
+.bloco-lojas     {background:linear-gradient(145deg,#4c1d95,#7c3aed,#a78bfa)}
+</style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════════════════════
+     TELA LOGIN
+════════════════════════════════════════════════════ -->
+<div id="tela-login" class="tela ativa">
+  <div class="login-bg"></div>
+  <div class="login-inner">
+
+    <!-- Logo ProIntegra -->
+    <div style="margin-bottom:8px;opacity:.92">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 200" width="200" height="125" fill="none">
+        <defs>
+          <linearGradient id="mGlobe" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#4fc3f7"/><stop offset="100%" stop-color="#1565c0"/></linearGradient>
+          <linearGradient id="mGear" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#b0bec5"/><stop offset="100%" stop-color="#607d8b"/></linearGradient>
+          <linearGradient id="mCirc" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#7c3aed"/><stop offset="100%" stop-color="#a855f7"/></linearGradient>
+        </defs>
+        <circle cx="82" cy="82" r="54" stroke="url(#mGlobe)" stroke-width="4" fill="none"/>
+        <ellipse cx="82" cy="82" rx="54" ry="20" stroke="url(#mGlobe)" stroke-width="2.2" fill="none"/>
+        <ellipse cx="82" cy="82" rx="54" ry="38" stroke="url(#mGlobe)" stroke-width="1.5" fill="none"/>
+        <line x1="82" y1="28" x2="82" y2="136" stroke="url(#mGlobe)" stroke-width="2"/>
+        <line x1="28" y1="82" x2="136" y2="82" stroke="url(#mGlobe)" stroke-width="2"/>
+        <line x1="38" y1="50" x2="126" y2="50" stroke="url(#mGlobe)" stroke-width="1.2" opacity=".6"/>
+        <line x1="38" y1="114" x2="126" y2="114" stroke="url(#mGlobe)" stroke-width="1.2" opacity=".6"/>
+        <g transform="translate(90,88)">
+          <path d="M0,-34 L5,-34 L8,-28 A30,30 0 0,1 16,-22 L22,-26 L26,-22 L28,-16 A30,30 0 0,1 30,-8 L34,-5 L34,5 L30,8 A30,30 0 0,1 28,16 L26,22 L22,26 L16,22 A30,30 0 0,1 8,28 L5,34 L-5,34 L-8,28 A30,30 0 0,1 -16,22 L-22,26 L-26,22 L-28,16 A30,30 0 0,1 -30,8 L-34,5 L-34,-5 L-30,-8 A30,30 0 0,1 -28,-16 L-26,-22 L-22,-26 L-16,-22 A30,30 0 0,1 -8,-28 L-5,-34 Z" fill="url(#mGear)" opacity=".95"/>
+          <circle r="20" fill="#ede9fe"/>
+          <polyline points="-9,1 -2,9 11,-8" stroke="#7c3aed" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+        </g>
+        <line x1="124" y1="78" x2="162" y2="78" stroke="url(#mCirc)" stroke-width="3" stroke-linecap="round"/>
+        <polyline points="142,78 142,60 175,60" stroke="url(#mCirc)" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+        <polyline points="154,78 154,96 180,96" stroke="url(#mCirc)" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+        <polyline points="162,78 162,112 186,112" stroke="url(#mCirc)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity=".7"/>
+        <circle cx="175" cy="60" r="5" fill="url(#mCirc)"/>
+        <circle cx="180" cy="96" r="5" fill="url(#mCirc)"/>
+        <circle cx="186" cy="112" r="4" fill="url(#mCirc)" opacity=".7"/>
+        <text x="28" y="166" font-family="'Segoe UI',Arial,sans-serif" font-size="32" font-weight="800" fill="#fff" letter-spacing="-.5">ProIntegra</text>
+        <text x="55" y="188" font-family="'Segoe UI',Arial,sans-serif" font-size="15" font-weight="500" fill="rgba(255,255,255,.55)" letter-spacing="4">SERVIÇOS</text>
+      </svg>
+    </div>
+
+    <div class="login-title" style="font-size:22px;margin-top:0">CondoGest</div>
+    <div class="login-domain">ronda.prointegraserv.com.br</div>
+
+    <form class="login-form" id="form-login" onsubmit="fazerLogin(event)">
+      <div class="campo-wrap">
+        <span class="campo-icon"><svg viewBox="0 0 24 24" width="18" height="18"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg></span>
+        <input id="login-email" type="email" inputmode="email" placeholder="email@prointegraserv.com.br" autocomplete="email" autocapitalize="none">
+      </div>
+      <div class="campo-wrap">
+        <span class="campo-icon"><svg viewBox="0 0 24 24" width="18" height="18"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>
+        <input id="login-senha" type="password" placeholder="••••••••" autocomplete="current-password">
+      </div>
+      <div id="login-erro" class="login-erro">E-mail ou senha incorretos.</div>
+      <button type="submit" class="btn-entrar">Entrar no Sistema</button>
+    </form>
+
+    <div class="login-divider"><span>ou acesso rápido</span></div>
+
+    <div class="acesso-rapido" id="acesso-rapido"></div>
+
+    <div style="margin-top:24px;padding-top:16px;border-top:1px solid rgba(255,255,255,.08);
+                text-align:center;font-size:10px;color:rgba(255,255,255,.22);line-height:1.7">
+      <strong style="color:rgba(255,255,255,.35)">CondoGest</strong> &copy; 2025 &mdash; Patente ProIntegra Serviços<br>
+      CNPJ 31.495.586/0001-36 &mdash; Desenvolvido pela ProIntegra
+    </div>
+
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════
+     TELA PONTO / REGISTRO DE HORÁRIO
+════════════════════════════════════════════════════ -->
+<div id="tela-ponto" class="tela" style="background:#0f172a">
+  <div style="padding:28px 20px 0;display:flex;align-items:center;gap:12px">
+    <div style="position:relative;flex-shrink:0" onclick="abrirEditarPerfil()">
+      <img id="ponto-foto" src="" alt="" style="width:52px;height:52px;border-radius:50%;object-fit:cover;border:2px solid rgba(255,255,255,.2);cursor:pointer">
+      <div style="position:absolute;bottom:-2px;right:-2px;width:18px;height:18px;background:#1d4ed8;border-radius:50%;display:flex;align-items:center;justify-content:center;border:2px solid #0f172a;pointer-events:none">
+        <svg viewBox="0 0 24 24" width="10" height="10" fill="none" stroke="#fff" stroke-width="2.5"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+      </div>
+    </div>
+    <div style="flex:1">
+      <div style="font-size:17px;font-weight:800;color:#f1f5f9" id="ponto-nome"></div>
+      <div style="font-size:12px;color:rgba(255,255,255,.45)" id="ponto-cargo"></div>
+    </div>
+    <button onclick="sairSistema()" style="background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);color:rgba(255,255,255,.5);border-radius:10px;padding:7px 12px;font-size:11px;font-weight:700;cursor:pointer">SAIR</button>
+  </div>
+
+  <div style="padding:20px;flex:1;overflow-y:auto;min-height:0;-webkit-overflow-scrolling:touch;overscroll-behavior:contain">
+
+    <!-- Relógio em tempo real -->
+    <div style="text-align:center;margin:10px 0 28px">
+      <div id="ponto-relogio" style="font-size:52px;font-weight:900;color:#fff;font-variant-numeric:tabular-nums;letter-spacing:-2px"></div>
+      <div id="ponto-data"    style="font-size:14px;color:rgba(255,255,255,.4);margin-top:4px"></div>
+    </div>
+
+    <!-- Foto obrigatória -->
+    <div style="background:rgba(255,255,255,.05);border-radius:16px;padding:16px;margin-bottom:16px;display:flex;align-items:center;gap:12px">
+      <div id="ponto-selfie-prev" style="width:60px;height:60px;border-radius:12px;background:rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;overflow:hidden;flex-shrink:0">
+        <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="rgba(255,255,255,.3)" stroke-width="1.5"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>
+      </div>
+      <div style="flex:1">
+        <div style="font-size:13px;font-weight:700;color:#f1f5f9;margin-bottom:4px">Selfie obrigatória</div>
+        <div style="font-size:11px;color:rgba(255,255,255,.4);line-height:1.4">Registre seu rosto para validar o ponto</div>
+      </div>
+      <button onclick="tirarSelfie()" id="btn-selfie" style="background:rgba(99,102,241,.3);border:1.5px solid rgba(99,102,241,.5);color:#a5b4fc;border-radius:10px;padding:9px 14px;font-size:12px;font-weight:700;cursor:pointer">
+        Tirar foto
+      </button>
+    </div>
+
+    <!-- Botões de ponto -->
+    <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:rgba(255,255,255,.35);margin-bottom:10px">Registrar Ponto</div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">
+      <button class="btn-ponto" id="btn-entrada" onclick="registrarPonto('ENTRADA')"
+        style="background:linear-gradient(135deg,#16a34a,#15803d);color:#fff;border:none;border-radius:14px;padding:18px 10px;font-size:15px;font-weight:800;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px">
+        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#fff" stroke-width="2.5"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/><polyline points="10 17 15 12 10 7"/><line x1="15" y1="12" x2="3" y2="12"/></svg>
+        Entrada<br><span style="font-size:10px;opacity:.7;font-weight:600">selfie obrigatória</span>
+      </button>
+      <button class="btn-ponto" id="btn-saida" onclick="registrarPonto('SAIDA')"
+        style="background:linear-gradient(135deg,#dc2626,#b91c1c);color:#fff;border:none;border-radius:14px;padding:18px 10px;font-size:15px;font-weight:800;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px">
+        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#fff" stroke-width="2.5"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Saída<br><span style="font-size:10px;opacity:.7;font-weight:600">toque direto</span>
+      </button>
+    </div>
+
+    <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:rgba(255,255,255,.35);margin-bottom:6px">Intervalos (15:00 e 20:00)</div>
+    <div style="font-size:10px;color:rgba(255,255,255,.25);margin-bottom:10px">Sem selfie obrigatória · toque direto</div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+      <button class="btn-ponto" id="btn-inicio-intervalo" onclick="registrarPonto('INICIO_INTERVALO')"
+        style="background:linear-gradient(135deg,#d97706,#b45309);color:#fff;border:none;border-radius:14px;padding:16px 10px;font-size:13px;font-weight:800;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#fff" stroke-width="2"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>
+        Início<br>Intervalo
+      </button>
+      <button class="btn-ponto" id="btn-fim-intervalo" onclick="registrarPonto('FIM_INTERVALO')"
+        style="background:linear-gradient(135deg,#0891b2,#0e7490);color:#fff;border:none;border-radius:14px;padding:16px 10px;font-size:13px;font-weight:800;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px">
+        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#fff" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        Fim<br>Intervalo
+      </button>
+    </div>
+
+    <!-- Histórico de pontos do dia -->
+    <div style="margin-top:20px">
+      <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:rgba(255,255,255,.35);margin-bottom:10px">Pontos de hoje</div>
+      <div id="historico-pontos" style="display:flex;flex-direction:column;gap:6px"></div>
+    </div>
+
+    <!-- Botão continuar para o sistema -->
+    <div style="margin-top:24px;padding-top:16px;border-top:1px solid rgba(255,255,255,.08)">
+      <button onclick="irParaChecklist()" id="btn-ir-checklist"
+        style="width:100%;padding:16px;background:rgba(255,255,255,.06);border:1.5px solid rgba(255,255,255,.12);color:#e2e8f0;border-radius:14px;font-size:15px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+        Ir para Checklist
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════
+     TELA TIPO DE VERIFICAÇÃO
+════════════════════════════════════════════════════ -->
+<div id="tela-tipo" class="tela">
+  <div class="tipo-header">
+    <button class="btn-voltar" onclick="ir('tela-ponto')" style="flex-shrink:0">
+      <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+    <img id="tipo-foto" src="" alt="usuario">
+    <div class="tipo-header-info">
+      <div class="tipo-header-nome" id="tipo-nome">--</div>
+      <div class="tipo-header-cargo" id="tipo-cargo">--</div>
+    </div>
+  </div>
+  <div class="tipo-conteudo scroll">
+    <div class="tipo-instrucao">Que verificação você<br>vai realizar agora?</div>
+
+    <div class="tipo-card tipo-horaria" onclick="selecionarTipo('HORARIA')">
+      <div class="tipo-card-icon">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12,6 12,12 16,14"/></svg>
+      </div>
+      <div class="tipo-card-txt">
+        <div class="tipo-card-nome">RONDA HORÁRIA</div>
+        <div class="tipo-card-desc">Pontos críticos: portas, corredores, hall, elevadores e garagem</div>
+        <span class="tipo-card-badge">A cada hora · ~10 min</span>
+      </div>
+    </div>
+
+    <div class="tipo-card tipo-diaria" onclick="selecionarTipo('DIARIA')">
+      <div class="tipo-card-icon">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/><path d="M6 16s.5-2 3-3.5 5-1.5 6-3.5"/></svg>
+      </div>
+      <div class="tipo-card-txt">
+        <div class="tipo-card-nome">CHECK DIÁRIO</div>
+        <div class="tipo-card-desc">Limpeza completa, câmeras, elevadores, PCF e sinalização de emergência</div>
+        <span class="tipo-card-badge">1× por turno · ~25 min</span>
+      </div>
+    </div>
+
+    <div class="tipo-card tipo-semanal" onclick="selecionarTipo('SEMANAL')">
+      <div class="tipo-card-icon">
+        <svg viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
+      </div>
+      <div class="tipo-card-txt">
+        <div class="tipo-card-nome">CHECK SEMANAL</div>
+        <div class="tipo-card-desc">Vidros, fachada, vazamentos, escadas, interfone, alarme e mangueiras</div>
+        <span class="tipo-card-badge">1× por semana · ~45 min</span>
+      </div>
+    </div>
+
+    <div class="tipo-card tipo-mensal" onclick="selecionarTipo('MENSAL')">
+      <div class="tipo-card-icon">
+        <svg viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+      </div>
+      <div class="tipo-card-txt">
+        <div class="tipo-card-nome">INSPEÇÃO MENSAL</div>
+        <div class="tipo-card-desc">Extintores (completa), mangueiras, hidrantes, detectores, cobertura e bombas</div>
+        <span class="tipo-card-badge">1× ao mês · ~90 min · Foto obrigatória</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════
+     TELA HOME
+════════════════════════════════════════════════════ -->
+<div id="tela-home" class="tela">
+  <div class="header">
+    <button class="btn-voltar" onclick="ir('tela-ponto')" title="Voltar ao ponto">
+      <svg viewBox="0 0 24 24" fill="none"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+    <img id="h-foto" src="" alt="usuario" style="width:38px;height:38px;border-radius:50%;object-fit:cover">
+    <div class="header-info">
+      <div class="header-nome" id="h-nome">--</div>
+      <div class="header-sub"  id="h-tipo-label">--</div>
+    </div>
+    <div class="header-hora" id="h-hora">00:00</div>
+  </div>
+  <div class="progresso-wrap"><div class="progresso-bar" id="barra-global"></div></div>
+
+  <div class="home-grid">
+    <!-- CORREDORES -->
+    <div class="bloco bloco-corredores" onclick="abrirListaAreas('corredores')">
+      <div class="bloco-icon-wrap">
+        <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9,22 9,12 15,12 15,22"/></svg>
+      </div>
+      <div class="bloco-label">CORREDORES</div>
+      <span class="bloco-badge badge-vazio" id="badge-corredores">0/0</span>
+    </div>
+    <!-- ESTACIONAMENTO -->
+    <div class="bloco bloco-estac" onclick="abrirListaAreas('estacionamento')">
+      <div class="bloco-icon-wrap">
+        <svg viewBox="0 0 24 24"><rect x="1" y="3" width="15" height="13" rx="2"/><path d="M16 8h4l3 5v3h-7V8z"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+      </div>
+      <div class="bloco-label">ESTACIONAMENTO</div>
+      <span class="bloco-badge badge-vazio" id="badge-estacionamento">0/0</span>
+    </div>
+    <!-- LOJAS -->
+    <div class="bloco bloco-lojas" onclick="abrirListaAreas('lojas')">
+      <div class="bloco-icon-wrap">
+        <svg viewBox="0 0 24 24"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+      </div>
+      <div class="bloco-label">LOJAS</div>
+      <span class="bloco-badge badge-vazio" id="badge-lojas">0/0</span>
+    </div>
+    <!-- LIMPEZA -->
+    <div class="bloco bloco-limpeza" onclick="abrirListaAreas('limpeza')">
+      <div class="bloco-icon-wrap">
+        <svg viewBox="0 0 24 24"><path d="M3 21h4l13-13-4-4L3 17v4z"/><path d="M14.5 5.5 19 10"/></svg>
+      </div>
+      <div class="bloco-label">LIMPEZA</div>
+      <span class="bloco-badge badge-vazio" id="badge-limpeza">0/0</span>
+    </div>
+    <!-- INCÊNDIO — linha inteira, menor -->
+    <div class="bloco bloco-incendio" onclick="abrirCat('incendio')"
+         style="grid-column:1/-1;min-height:76px;flex-direction:row;gap:14px;padding:14px 20px;justify-content:flex-start">
+      <div class="bloco-icon-wrap" style="width:46px;height:46px;margin:0;border-radius:13px">
+        <svg viewBox="0 0 24 24"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>
+      </div>
+      <div class="bloco-label" style="font-size:17px;text-align:left;flex:1">INCÊNDIO E SEGURANÇA</div>
+      <span class="bloco-badge badge-vazio" id="badge-incendio" style="position:static;margin-left:auto">0/0</span>
+    </div>
+    <!-- REGISTRAR INCONFORMIDADES -->
+    <div class="bloco bloco-relatar" onclick="relatarAvulso()" style="grid-column:1/-1">
+      <div class="bloco-icon-wrap">
+        <svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+      </div>
+      <div class="bloco-label">REGISTRAR INCONFORMIDADES</div>
+    </div>
+  </div>
+
+  <div class="panico-wrap">
+    <button class="btn-panico" id="btn-panico"
+      onmousedown="iniciaPanico()" onmouseup="cancelaPanico()"
+      ontouchstart="iniciaPanico(event)" ontouchend="cancelaPanico()">
+      <svg viewBox="0 0 24 24" fill="none"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      PÂNICO — SEGURE 2 SEGUNDOS
+    </button>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════
+     TELA ÁREAS DINÂMICAS
+════════════════════════════════════════════════════ -->
+<div id="tela-areas" class="tela">
+  <div class="header">
+    <button class="btn-voltar" onclick="ir('tela-home')">
+      <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+    <div class="header-info">
+      <div class="header-nome" id="areas-titulo">--</div>
+      <div class="header-sub"  id="areas-progresso">0 de 0 verificados</div>
+    </div>
+    <button class="btn-add-area" onclick="adicionarArea()">
+      <svg viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      NOVO
+    </button>
+  </div>
+  <div class="progresso-wrap"><div class="progresso-bar" id="areas-barra"></div></div>
+  <div class="scroll">
+    <div id="areas-lista" style="padding:14px;display:flex;flex-direction:column;gap:10px"></div>
+  </div>
+</div>
+
+<!-- Modal — nova área -->
+<div class="modal-area-overlay" id="modal-nova-area">
+  <div class="modal-area-card">
+    <div class="modal-area-titulo" id="modal-area-titulo">Adicionar Nova Área</div>
+    <input id="nova-area-nome" class="modal-area-input" type="text"
+           placeholder="Ex: Corredor 3º Andar" maxlength="60" autocomplete="off"
+           onkeydown="if(event.key==='Enter')confirmarNovaArea()">
+    <div class="modal-area-btns">
+      <button class="btn-modal-cancel"  onclick="fecharModalArea()">Cancelar</button>
+      <button class="btn-modal-confirm" onclick="confirmarNovaArea()">Adicionar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════
+     TELA CHECKLIST
+════════════════════════════════════════════════════ -->
+<div id="tela-checklist" class="tela">
+  <div class="header">
+    <button class="btn-voltar" onclick="voltarDoChecklist()">
+      <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+    </button>
+    <div class="header-info">
+      <div class="header-nome" id="cat-titulo">--</div>
+      <div class="header-sub"  id="cat-subtitulo" style="display:none"></div>
+    </div>
+  </div>
+  <div class="scroll">
+    <div class="checklist-itens" id="checklist-itens"></div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════
+     TELA CÂMERA
+════════════════════════════════════════════════════ -->
+<div id="tela-camera" class="tela">
+  <video id="cam-video" autoplay muted playsinline></video>
+  <canvas id="cam-canvas"></canvas>
+  <div class="cam-overlay">
+    <div class="cam-instrucao">Fotografe o ponto inspecionado</div>
+    <div class="cam-acoes">
+      <button class="btn-cam-cancel" onclick="cancelarCamera()">
+        <svg viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+      <button class="btn-capture" onclick="capturarFoto()">
+        <svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+      </button>
+      <div style="width:52px"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════
+     TELA ÁUDIO
+════════════════════════════════════════════════════ -->
+<div id="tela-audio" class="tela">
+  <div class="audio-icon-wrap">
+    <svg viewBox="0 0 24 24"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/></svg>
+  </div>
+  <div class="audio-titulo">DESCREVA O QUE VIU</div>
+  <div class="audio-sub">Fale com clareza para o microfone</div>
+  <div class="audio-timer" id="audio-timer">0:00</div>
+  <div class="onda" id="onda"></div>
+  <button class="btn-stop" onclick="pararAudio()">
+    <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/></svg>
+  </button>
+</div>
+
+<!-- ════════════════════════════════════════════════════
+     TELA CONFIRMAÇÃO
+════════════════════════════════════════════════════ -->
+<div id="tela-ok" class="tela">
+  <div class="ok-icon-wrap">
+    <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>
+  </div>
+  <div class="ok-titulo">REGISTRADO!</div>
+  <div class="ok-sub" id="ok-msg">Evidência salva com sucesso.</div>
+</div>
+
+<!-- OVERLAY PÂNICO -->
+<div id="overlay-panico">
+  <div class="panico-big-icon">
+    <svg viewBox="0 0 24 24"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+  </div>
+  <div class="panico-big-txt">ALERTA ENVIADO!</div>
+  <div class="panico-sub">A guarita central foi notificada.<br>Mantenha a calma. Ajuda a caminho.</div>
+  <button class="btn-fechar-panico" onclick="fecharPanico()">FECHAR</button>
+</div>
+
+<div id="toast"></div>
+
+<!-- ════════════════════════════════════════════════════
+     MODAL EDITAR PERFIL
+════════════════════════════════════════════════════ -->
+<div id="modal-perfil" style="display:none;position:fixed;inset:0;z-index:8000;background:rgba(0,0,0,.7);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);align-items:flex-end;justify-content:center">
+  <div style="background:#1e293b;border-radius:24px 24px 0 0;width:100%;max-width:480px;padding:28px 24px calc(env(safe-area-inset-bottom,20px)+24px)">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px">
+      <div style="font-size:18px;font-weight:800;color:#f1f5f9">Editar Perfil</div>
+      <button onclick="fecharEditarPerfil()" style="background:rgba(255,255,255,.08);border:none;color:#94a3b8;width:36px;height:36px;border-radius:50%;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>
+
+    <!-- Foto de perfil -->
+    <div style="display:flex;flex-direction:column;align-items:center;margin-bottom:24px;gap:12px">
+      <div style="position:relative" onclick="trocarFotoPerfil()">
+        <img id="perfil-modal-foto" src="" alt="" style="width:90px;height:90px;border-radius:50%;object-fit:cover;border:3px solid rgba(99,102,241,.5);cursor:pointer">
+        <div style="position:absolute;bottom:0;right:0;background:#6366f1;border-radius:50%;width:28px;height:28px;display:flex;align-items:center;justify-content:center;border:3px solid #1e293b;cursor:pointer">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="#fff" stroke-width="2.5"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>
+        </div>
+      </div>
+      <div style="font-size:12px;color:rgba(255,255,255,.4)">Toque na foto para alterar</div>
+    </div>
+
+    <!-- Nome -->
+    <div style="margin-bottom:14px">
+      <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:rgba(255,255,255,.4);margin-bottom:6px;display:block">Nome completo</label>
+      <input id="perfil-modal-nome" type="text" maxlength="60"
+        style="width:100%;padding:13px 14px;background:rgba(255,255,255,.06);border:1.5px solid rgba(255,255,255,.1);border-radius:12px;color:#f1f5f9;font-size:15px;outline:none"
+        onfocus="this.style.borderColor='rgba(99,102,241,.6)'" onblur="this.style.borderColor='rgba(255,255,255,.1)'">
+    </div>
+
+    <!-- Email (leitura) -->
+    <div style="margin-bottom:20px">
+      <label style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:rgba(255,255,255,.4);margin-bottom:6px;display:block">E-mail</label>
+      <div id="perfil-modal-email" style="padding:13px 14px;background:rgba(255,255,255,.03);border:1.5px solid rgba(255,255,255,.06);border-radius:12px;color:rgba(255,255,255,.4);font-size:13px"></div>
+    </div>
+
+    <button onclick="salvarPerfil()" style="width:100%;padding:16px;background:linear-gradient(135deg,#4f46e5,#7c3aed);border:none;border-radius:14px;color:#fff;font-size:16px;font-weight:800;cursor:pointer">
+      Salvar Alterações
+    </button>
+  </div>
+</div>
+
+<script>
+/* ─── CONFIG ──────────────────────────────────────────── */
+const BASE_URL = 'https://ronda.prointegraserv.com.br';
+const API      = BASE_URL + '/api/v1';
+
+/* ─── USUÁRIOS DO SISTEMA ─────────────────────────────── */
+const USUARIOS = {
+  'ronda@prointegraserv.com.br':{
+    senha:'ronda2025', nome:'Fiscal de Ronda', cargo:'Fiscal de Piso', perfil:'fiscal',
+    foto:'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=120&h=120&fit=crop&crop=face',
+    badge:'badge-fiscal', label:'Fiscal'
+  },
+  'limpeza@prointegraserv.com.br':{
+    senha:'limpeza2025', nome:'ASG Limpeza', cargo:'Auxiliar de Serviços Gerais', perfil:'fiscal',
+    foto:'https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=120&h=120&fit=crop&crop=face',
+    badge:'badge-asg', label:'ASG'
+  },
+  'sindico@prointegraserv.com.br':{
+    senha:'sindico2025', nome:'Síndico', cargo:'Síndico do Condomínio', perfil:'admin',
+    foto:'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=120&h=120&fit=crop&crop=face',
+    badge:'badge-admin', label:'Admin'
+  },
+  'administradora@prointegraserv.com.br':{
+    senha:'admin2025', nome:'Administradora', cargo:'Administradora', perfil:'admin',
+    foto:'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=120&h=120&fit=crop&crop=face',
+    badge:'badge-admin', label:'Admin'
+  },
+  'iran@prointegraserv.com.br':{
+    senha:'iran2025', nome:'Iran Feliciano', cargo:'Super Administrador', perfil:'superadmin',
+    foto:'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=120&h=120&fit=crop&crop=face',
+    badge:'badge-super', label:'Super'
+  },
+};
+
+/* ─── ITENS POR FREQUÊNCIA ────────────────────────────── */
+const TODOS_ITENS = {
+  limpeza:{titulo:'LIMPEZA',
+    HORARIA:[
+      {id:'limp_chao_h', label:'CORREDORES', ok:'check','nok':'x', tokOk:'LIMPO',tokNok:'SUJO',
+       foto:'https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=500&h=260&fit=crop',
+       instrucao:'Verifique o piso dos corredores de circulação principal'},
+      {id:'limp_hall_h', label:'HALL / RECEPÇÃO',ok:'check',nok:'x',tokOk:'LIMPO',tokNok:'SUJO',
+       foto:'https://images.unsplash.com/photo-1497366216548-37526070297c?w=500&h=260&fit=crop',
+       instrucao:'Verifique o hall de entrada e área da recepção'},
+    ],
+    DIARIA:[
+      {id:'limp_chao',    label:'PISO — GERAL',   ok:'check',nok:'x',tokOk:'LIMPO', tokNok:'SUJO',
+       foto:'https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=500&h=260&fit=crop',
+       instrucao:'Verifique todos os pavimentos do condomínio'},
+      {id:'limp_lixeira', label:'LIXEIRAS',        ok:'check',nok:'x',tokOk:'VAZIAS',tokNok:'CHEIAS',
+       foto:'https://images.unsplash.com/photo-1605600659908-0ef719419d41?w=500&h=260&fit=crop',
+       instrucao:'Verifique se as lixeiras estão transbordando'},
+      {id:'limp_banheiro',label:'BANHEIROS',       ok:'check',nok:'x',tokOk:'LIMPOS',tokNok:'PROBLEMA',
+       foto:'https://images.unsplash.com/photo-1552321554-5fefe8c9ef14?w=500&h=260&fit=crop',
+       instrucao:'Papel, sabonete, privadas, pia e piso'},
+    ],
+    SEMANAL:[
+      {id:'limp_vidros',  label:'VIDROS E JANELAS',ok:'check',nok:'x',tokOk:'LIMPOS',tokNok:'SUJOS',
+       foto:'https://images.unsplash.com/photo-1486325212027-8081e485255e?w=500&h=260&fit=crop',
+       instrucao:'Vidros externos e esquadrias'},
+      {id:'limp_estacion',label:'ESTACIONAMENTO',  ok:'check',nok:'x',tokOk:'LIMPO', tokNok:'SUJO',
+       foto:'https://images.unsplash.com/photo-1558618047-f4e70e31cc8b?w=500&h=260&fit=crop',
+       instrucao:'Varredura da garagem e rampa de acesso'},
+    ],
+    MENSAL:[
+      {id:'limp_calhas',label:'CALHAS E CANALETAS',ok:'check',nok:'x',tokOk:'LIMPAS',tokNok:'ENTUPIDAS',
+       foto:'https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=500&h=260&fit=crop',
+       instrucao:'Verifique calhas de telhado e canaletas de drenagem',fotoOk:true},
+    ],
+  },
+  seguranca:{titulo:'SEGURANÇA',
+    HORARIA:[
+      {id:'seg_porta_h',   label:'PORTAS E PORTÕES',ok:'lock',nok:'unlock',tokOk:'TRANCADO',tokNok:'ABERTO/DANIF.',
+       foto:'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=500&h=260&fit=crop',
+       instrucao:'Teste todas as portas e portões do percurso'},
+      {id:'seg_garagem_h', label:'GARAGEM',          ok:'check',nok:'alert',tokOk:'LIVRE',  tokNok:'PROBLEMA',
+       foto:'https://images.unsplash.com/photo-1558618047-f4e70e31cc8b?w=500&h=260&fit=crop',
+       instrucao:'Cancelas, barreiras e acesso da garagem'},
+      {id:'seg_portaria_h',label:'PORTARIA',          ok:'check',nok:'alert',tokOk:'GUARNECIDA',tokNok:'PROBLEMA',
+       foto:'https://images.unsplash.com/photo-1497366216548-37526070297c?w=500&h=260&fit=crop',
+       instrucao:'Confirme que o posto da portaria está guarnecido'},
+    ],
+    DIARIA:[
+      {id:'seg_camera',  label:'CÂMERAS (CFTV)',  ok:'check',nok:'x',tokOk:'FUNCIONANDO',tokNok:'PROBLEMA',
+       foto:'https://images.unsplash.com/photo-1558618047-f4e70e31cc8b?w=500&h=260&fit=crop',
+       instrucao:'Verifique o monitor do CFTV — todas as câmeras'},
+      {id:'seg_ilum_ext',label:'ILUMINAÇÃO EXTERNA',ok:'check',nok:'x',tokOk:'ACESA',tokNok:'APAGADA',
+       foto:'https://images.unsplash.com/photo-1565814329452-e1efa11c5b89?w=500&h=260&fit=crop',
+       instrucao:'Lâmpadas de fachada, estacionamento e jardins'},
+    ],
+    SEMANAL:[
+      {id:'seg_interfone',label:'INTERFONE E RÁDIO',ok:'check',nok:'x',tokOk:'FUNCIONANDO',tokNok:'PROBLEMA',
+       foto:'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=500&h=260&fit=crop',
+       instrucao:'Teste o interfone de cada andar e o rádio da portaria'},
+      {id:'seg_alarme',  label:'CENTRAL DE ALARME',ok:'check',nok:'x',tokOk:'ARMADA/OK',tokNok:'COM FALHA',
+       foto:'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=500&h=260&fit=crop',
+       instrucao:'Painel da central — sem zonas em fault'},
+    ],
+    MENSAL:[
+      {id:'seg_cftv_grav',label:'GRAVAÇÃO DO CFTV',ok:'check',nok:'x',tokOk:'GRAVANDO',tokNok:'SEM GRAVAÇÃO',
+       foto:'https://images.unsplash.com/photo-1558618047-f4e70e31cc8b?w=500&h=260&fit=crop',
+       instrucao:'Verifique no DVR/NVR se todas as câmeras estão gravando',fotoOk:true},
+    ],
+  },
+  estrutura:{titulo:'ESTRUTURA',
+    HORARIA:[
+      {id:'est_elev_h',label:'ELEVADORES',ok:'check',nok:'x',tokOk:'FUNCIONANDO',tokNok:'PARADO',
+       foto:'https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=500&h=260&fit=crop',
+       instrucao:'Chame os elevadores — devem responder normalmente'},
+    ],
+    DIARIA:[
+      {id:'est_lampada', label:'LÂMPADAS INTERNAS',ok:'check',nok:'x',tokOk:'ACESAS',tokNok:'QUEIMADAS',
+       foto:'https://images.unsplash.com/photo-1565814329452-e1efa11c5b89?w=500&h=260&fit=crop',
+       instrucao:'Luminárias dos corredores, halls e escadas'},
+      {id:'est_elevador',label:'ELEVADORES — INSPEÇÃO',ok:'check',nok:'x',tokOk:'FUNCIONANDO',tokNok:'PARADO',
+       foto:'https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=500&h=260&fit=crop',
+       instrucao:'Operação, alarme sonoro e iluminação da cabine'},
+    ],
+    SEMANAL:[
+      {id:'est_vidro',    label:'VIDROS E FACHADA',  ok:'check',nok:'x',tokOk:'INTEIROS',tokNok:'QUEBRADOS',
+       foto:'https://images.unsplash.com/photo-1486325212027-8081e485255e?w=500&h=260&fit=crop',
+       instrucao:'Vidros, esquadrias e revestimento da fachada'},
+      {id:'est_vazamento',label:'VAZAMENTOS',          ok:'check',nok:'x',tokOk:'SECO',  tokNok:'VAZANDO',
+       foto:'https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=500&h=260&fit=crop',
+       instrucao:'Tetos, paredes e casa de bombas por sinais de umidade'},
+      {id:'est_escadas',  label:'ESCADAS E CORRIMÃOS',ok:'check',nok:'x',tokOk:'OK',     tokNok:'COM PROBLEMA',
+       foto:'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=500&h=260&fit=crop',
+       instrucao:'Firmeza dos corrimãos e condição dos degraus'},
+    ],
+    MENSAL:[
+      {id:'est_cobertura', label:'COBERTURA',           ok:'check',nok:'x',tokOk:'OK',tokNok:'COM PROBLEMA',
+       foto:'https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=500&h=260&fit=crop',
+       instrucao:'Cobertura, calhas, caixa d\'água e casa de máquinas',fotoOk:true},
+      {id:'est_subestacao',label:'SUBESTAÇÃO ELÉTRICA', ok:'check',nok:'x',tokOk:'OK',tokNok:'COM PROBLEMA',
+       foto:'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=500&h=260&fit=crop',
+       instrucao:'Quadros elétricos — sinais de aquecimento, odor ou ruído',fotoOk:true},
+      {id:'est_bombas',    label:'BOMBAS HIDRÁULICAS',  ok:'check',nok:'x',tokOk:'FUNCIONANDO',tokNok:'PROBLEMA',
+       foto:'https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=500&h=260&fit=crop',
+       instrucao:'Acione manualmente as bombas e verifique operação',fotoOk:true},
+    ],
+  },
+  incendio:{titulo:'INCÊNDIO E SEGURANÇA',
+    HORARIA:[
+      {id:'inc_h_pcf',      label:'PORTAS CORTA-FOGO',    ok:'check',nok:'alert',tokOk:'FECHADAS',     tokNok:'TRAVADAS/ABERTAS',
+       instrucao:'Percorra todas as PCF — devem fechar livremente, sem calços, travas ou objetos bloqueando'},
+      {id:'inc_h_saida',    label:'SAÍDAS DE EMERGÊNCIA', ok:'check',nok:'x',    tokOk:'ILUMINADAS/OK',tokNok:'APAGADA/BLOQUEADA',
+       instrucao:'Placas de saída de emergência acesas e corredores de fuga totalmente livres'},
+      {id:'inc_h_fuga',     label:'ROTA DE FUGA',         ok:'check',nok:'x',    tokOk:'DESOBSTRUÍDA', tokNok:'COM OBSTÁCULO',
+       instrucao:'Escadas e rotas de fuga sem objetos, veículos ou entulhos'},
+    ],
+    DIARIA:[
+      {id:'inc_d_pcf',      label:'PORTA CORTA-FOGO',     ok:'check',nok:'alert',tokOk:'FECHADA/OK',   tokNok:'TRAVADA/DANIF.',
+       instrucao:'Todas as PCF devem fechar livremente, sem calços ou travas — foto se NOK'},
+      {id:'inc_d_saida',    label:'SAÍDA DE EMERGÊNCIA',  ok:'check',nok:'x',    tokOk:'ILUMINADA/OK', tokNok:'APAGADA/DANIF.',
+       instrucao:'Placas de saída de emergência iluminadas em todos os andares'},
+      {id:'inc_d_ext',      label:'EXTINTORES — VISUAL',  ok:'check',nok:'x',    tokOk:'NO LUGAR',     tokNok:'SUMIDO/DANIF.',
+       instrucao:'Verificar se todos os extintores estão no suporte e sem violação do lacre'},
+      {id:'inc_d_cxmang',   label:'CAIXAS DE MANGUEIRA',  ok:'check',nok:'x',    tokOk:'FECHADAS/OK',  tokNok:'ABERTAS/DANIF.',
+       instrucao:'Caixas fechadas, vidro intacto ou porta sem dano, sinalizadas com "Mangueira de Incêndio"'},
+    ],
+    SEMANAL:[
+      {id:'inc_s_ext',      label:'EXTINTORES',             ok:'check',nok:'x',tokOk:'CONFORME',tokNok:'NÃO CONFORME',
+       instrucao:'Lacre intacto, pino de segurança presente, manômetro na faixa verde, prazo de validade ok',fotoOk:true},
+      {id:'inc_s_mangueira',label:'MANGUEIRAS',             ok:'check',nok:'x',tokOk:'ENROLADA/OK',  tokNok:'SOLTA/DANIF.',
+       instrucao:'Mangueira enrolada corretamente no suporte, esguicho/registro acoplado'},
+      {id:'inc_s_cxmang',   label:'CAIXAS DE MANGUEIRA',   ok:'check',nok:'x',tokOk:'ÍNTEGRAS',     tokNok:'DANIF./ABERTAS',
+       instrucao:'Caixa sem danos, mangueira e esguicho presentes dentro, chave na fechadura se houver'},
+      {id:'inc_s_hidrante', label:'HIDRANTE — REGISTRO',   ok:'check',nok:'x',tokOk:'SEM VAZAMENTO',tokNok:'VAZANDO/TRAVADO',
+       instrucao:'Verifique visualmente o registro de hidrante — sem oxidação, vazamentos ou travamento'},
+      {id:'inc_s_sprinkler',label:'SPRINKLERS — VISUAL',   ok:'check',nok:'x',tokOk:'INTACTOS',     tokNok:'DANIF./ACIONADO',
+       instrucao:'Percorra tetos — cabeças de sprinkler íntegras, sem choque mecânico ou corrosão visível'},
+      {id:'inc_s_ilum_em',  label:'ILUMINAÇÃO EMERGÊNCIA', ok:'check',nok:'x',tokOk:'OPERACIONAL',  tokNok:'COM FALHA',
+       instrucao:'Blocos autônomos de iluminação de emergência com LEDs acesos (standby verde)'},
+      {id:'inc_s_sinal',    label:'SINALIZAÇÃO',           ok:'check',nok:'x',tokOk:'VISÍVEL/OK',   tokNok:'DANIF./APAGADA',
+       instrucao:'Placas de rota de fuga, saídas e equipamentos de combate a incêndio legíveis e fixadas'},
+    ],
+    MENSAL:[
+      {id:'inc_m_ext',      label:'EXTINTORES — INSPEÇÃO COMPLETA',ok:'check',nok:'x',tokOk:'CONFORME',tokNok:'NÃO CONFORME',
+       instrucao:'Lacre, pino, manômetro verde, peso (agite o pó), validade recarga, suporte fixo, etiqueta de inspeção',fotoOk:true},
+      {id:'inc_m_mangueira',label:'MANGUEIRAS E SUPORTES',         ok:'check',nok:'x',tokOk:'CONFORME',tokNok:'NÃO CONFORME',
+       instrucao:'Mangueira enrolada, sem ressecamento/rachaduras, esguicho e reduções presentes, suporte fixo',fotoOk:true},
+      {id:'inc_m_cxmang',   label:'CAIXAS DE MANGUEIRA — COMPLETA',ok:'check',nok:'x',tokOk:'CONFORME',tokNok:'NÃO CONFORME',
+       instrucao:'Estrutura íntegra, sinalização correta, mangueira e acessórios completos, sem umidade interna',fotoOk:true},
+      {id:'inc_m_hidrante', label:'HIDRANTES — TESTE DE FLUXO',    ok:'check',nok:'x',tokOk:'CONFORME',tokNok:'NÃO CONFORME',
+       instrucao:'Abra o registro brevemente (mangueira conectada) — fluxo de água adequado e vedação sem vazamento',fotoOk:true},
+      {id:'inc_m_sprinkler',label:'SPRINKLERS — INSPEÇÃO COMPLETA',ok:'check',nok:'x',tokOk:'CONFORME',tokNok:'NÃO CONFORME',
+       instrucao:'Todas as cabeças íntegras, sem pintura, obstrução ou amassado — rede pressurizada conforme manômetro',fotoOk:true},
+      {id:'inc_m_detector', label:'DETECTORES DE FUMAÇA',          ok:'check',nok:'x',tokOk:'OPERACIONAIS',tokNok:'COM FALHA',
+       instrucao:'Pressione o botão de teste em cada detector — alarme deve soar em até 30s',fotoOk:true},
+      {id:'inc_m_alarme',   label:'ALARME DE INCÊNDIO',            ok:'check',nok:'x',tokOk:'OPERACIONAL', tokNok:'COM FALHA',
+       instrucao:'Ative acionador manual — sirene deve soar e central registrar evento',fotoOk:true},
+      {id:'inc_m_central',  label:'CENTRAL DE INCÊNDIO',           ok:'check',nok:'x',tokOk:'SEM FALHAS',  tokNok:'COM FALHA/ALARME',
+       instrucao:'Verifique display da central — sem zonas em falha, bateria em carga, histórico de eventos ok',fotoOk:true},
+      {id:'inc_m_bomba',    label:'BOMBAS DE INCÊNDIO',            ok:'check',nok:'x',tokOk:'OPERACIONAL',  tokNok:'COM FALHA',
+       instrucao:'Acione manualmente as bombas jockey e principal — verifique partida, pressão e vedações',fotoOk:true},
+    ],
+  },
+};
+
+const TIPO_INFO={
+  HORARIA:{nome:'Ronda Horária',   cor:'#7c3aed'},
+  DIARIA: {nome:'Check Diário',    cor:'#1d4ed8'},
+  SEMANAL:{nome:'Check Semanal',   cor:'#d97706'},
+  MENSAL: {nome:'Inspeção Mensal', cor:'#dc2626'},
+};
+
+/* ─── ESTADO ──────────────────────────────────────────── */
+const APP={
+  usuario:null,tipoVerificacao:null,catAtual:null,itemAtual:null,
+  respostas:{},rondaId:'ronda_'+Date.now(),
+  stream:null,recorder:null,chunks:[],
+  timerPanico:null,timerAudio:null,secsAudio:0,
+  modoAvulso:false,mediaFoto:null,mediaAudio:null,
+};
+let CATS={};
+
+/* ─── INIT ────────────────────────────────────────────── */
+document.addEventListener('DOMContentLoaded',()=>{
+  renderAcessoRapido();
+  gerarOnda();
+  setInterval(()=>{
+    const a=new Date();
+    const el=document.getElementById('h-hora');
+    if(el)el.textContent=String(a.getHours()).padStart(2,'0')+':'+String(a.getMinutes()).padStart(2,'0');
+  },5000);
+});
+
+/* Acesso rápido: só aparece para quem logou hoje neste dispositivo */
+function getDispositivoUser(){
+  const d=JSON.parse(localStorage.getItem('cg_device_user')||'null');
+  if(!d)return null;
+  const hoje=new Date().toLocaleDateString('pt-BR');
+  return d.date===hoje?d:null; // expira à meia-noite
+}
+function setDispositivoUser(email,foto){
+  localStorage.setItem('cg_device_user',JSON.stringify({
+    email, foto,
+    date:new Date().toLocaleDateString('pt-BR')
+  }));
+}
+
+function renderAcessoRapido(){
+  const wrap=document.getElementById('acesso-rapido');
+  const dev=getDispositivoUser();
+  if(dev&&dev.email){
+    // Só mostra o usuário do dispositivo de hoje
+    const email=dev.email;
+    const u=USUARIOS[email];
+    if(!u){wrap.innerHTML='';return;}
+    const fotoReal=getPerfilFoto(email)||u.foto;
+    wrap.style.gridTemplateColumns='1fr';
+    wrap.innerHTML=`<div class="ar-card" onclick="quickLogin('${email}')" style="max-width:200px;margin:0 auto">
+      <img src="${fotoReal}" alt="${u.nome}"
+           onerror="this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(u.nome)}&background=1d4ed8&color=fff&size=120'">
+      <div class="ar-nome">${u.nome.split(' ')[0]}</div>
+      <div class="ar-cargo">${u.cargo}</div>
+      <span class="ar-badge ${u.badge}">${u.label}</span>
+    </div>`;
+  } else {
+    // Primeira vez: mostra todos os usuários (sem senha preenchida)
+    wrap.style.gridTemplateColumns='';
+    wrap.innerHTML=Object.entries(USUARIOS).map(([email,u])=>`
+      <div class="ar-card" onclick="selecionarLoginRapido('${email}')">
+        <img src="${u.foto}" alt="${u.nome}"
+             onerror="this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(u.nome)}&background=1d4ed8&color=fff&size=120'">
+        <div class="ar-nome">${u.nome.split(' ')[0]}</div>
+        <div class="ar-cargo">${u.cargo}</div>
+        <span class="ar-badge ${u.badge}">${u.label}</span>
+      </div>`).join('');
+  }
+}
+
+function selecionarLoginRapido(email){
+  // Preenche o email mas requer a senha (segurança)
+  document.getElementById('login-email').value=email;
+  document.getElementById('login-senha').focus();
+  vibrar([30]);
+  toast('Digite a senha para entrar');
+}
+
+/* Foto de perfil salva da selfie do ponto */
+function getPerfilFoto(email){
+  return localStorage.getItem('cg_perfil_foto_'+email)||null;
+}
+function salvarPerfilFoto(email,dataUrl){
+  try{localStorage.setItem('cg_perfil_foto_'+email,dataUrl);}catch(e){}
+}
+
+/* ─── LOGIN ───────────────────────────────────────────── */
+function fazerLogin(e){
+  e.preventDefault();
+  const email=document.getElementById('login-email').value.trim().toLowerCase();
+  const senha=document.getElementById('login-senha').value;
+  const u=USUARIOS[email];
+  const erroEl=document.getElementById('login-erro');
+  if(!u||u.senha!==senha){
+    erroEl.classList.add('visivel');
+    document.getElementById('login-senha').value='';
+    vibrar([100,50,100]);
+    setTimeout(()=>erroEl.classList.remove('visivel'),3000);
+    return;
+  }
+  entrarSistema(email,u);
+}
+
+function quickLogin(email){
+  // Acesso rápido: só o usuário do dispositivo de hoje, sem senha
+  const dev=getDispositivoUser();
+  if(!dev||dev.email!==email){
+    document.getElementById('login-email').value=email;
+    document.getElementById('login-senha').focus();
+    toast('Digite a senha para confirmar');
+    return;
+  }
+  const u=USUARIOS[email];
+  if(u)entrarSistema(email,u);
+}
+
+function entrarSistema(email,u){
+  // Carrega nome customizado salvo, se houver
+  const perfisCustom = JSON.parse(localStorage.getItem('cg_perfis_custom')||'{}');
+  const custom = perfisCustom[email] || {};
+  APP.usuario={email,...u,...custom};
+  // Registra usuário do dispositivo para acesso rápido
+  setDispositivoUser(email, getPerfilFoto(email)||u.foto);
+  if(u.perfil==='admin'||u.perfil==='superadmin'){
+    toast('Perfil gerencial — use o Painel Web');
+    setTimeout(()=>{
+      if(confirm('Abrir o Painel Administrativo?')){
+        window.open('/admin/','_blank');
+      }
+    },500);
+    return;
+  }
+  // Atualiza foto de perfil do acesso rápido com selfie salva
+  const fotoSalva=getPerfilFoto(email);
+  if(fotoSalva) APP.usuario.foto=fotoSalva;
+  abrirTelaPonto();
+}
+
+/* ─── SAIR / PERFIL ───────────────────────────────────── */
+function sairSistema(){
+  if(!confirm('Deseja sair do sistema?')) return;
+  APP.usuario = null;
+  localStorage.removeItem('cg_device_user');
+  clearInterval(relogioInterval);
+  ir('tela-login');
+  renderAcessoRapido();
+}
+
+function abrirEditarPerfil(){
+  const u = APP.usuario;
+  document.getElementById('perfil-modal-nome').value  = u.nome || '';
+  document.getElementById('perfil-modal-email').textContent = u.email || '';
+  const foto = getPerfilFoto(u.email) || u.foto || '';
+  document.getElementById('perfil-modal-foto').src = foto;
+  const el = document.getElementById('modal-perfil');
+  el.style.display = 'flex';
+  setTimeout(()=>{ el.style.opacity='1'; },10);
+}
+function fecharEditarPerfil(){
+  document.getElementById('modal-perfil').style.display = 'none';
+}
+function trocarFotoPerfil(){
+  APP._editandoPerfil = true;
+  abrirCamera('perfil');
+}
+function salvarPerfil(){
+  const u = APP.usuario;
+  const novoNome = document.getElementById('perfil-modal-nome').value.trim();
+  if(!novoNome){ toast('Digite seu nome completo'); return; }
+  u.nome = novoNome;
+  USUARIOS[u.email] = {...(USUARIOS[u.email]||{}), nome: novoNome};
+  document.getElementById('ponto-nome').textContent = novoNome;
+  document.getElementById('h-nome').textContent = novoNome;
+  // Salva no localStorage
+  const perfisCustom = JSON.parse(localStorage.getItem('cg_perfis_custom')||'{}');
+  perfisCustom[u.email] = { nome: novoNome };
+  localStorage.setItem('cg_perfis_custom', JSON.stringify(perfisCustom));
+  fecharEditarPerfil();
+  toast('Perfil atualizado com sucesso');
+}
+
+/* ─── PONTO ELETRÔNICO ────────────────────────────────── */
+let relogioInterval = null;
+let pontoSelfieDataURL = null;
+
+function abrirTelaPonto(){
+  const u = APP.usuario;
+  // Usa foto de selfie do perfil se disponível
+  const fotoAtual = getPerfilFoto(u.email) || u.foto || '';
+  document.getElementById('ponto-foto').src  = fotoAtual;
+  document.getElementById('ponto-nome').textContent  = u.nome;
+  document.getElementById('ponto-cargo').textContent = u.cargo;
+  // Inicia relógio
+  clearInterval(relogioInterval);
+  function tick(){
+    const agora = new Date();
+    document.getElementById('ponto-relogio').textContent =
+      agora.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+    document.getElementById('ponto-data').textContent =
+      agora.toLocaleDateString('pt-BR',{weekday:'long',day:'2-digit',month:'long',year:'numeric'});
+  }
+  tick(); relogioInterval = setInterval(tick,1000);
+  // Carrega histórico salvo
+  renderizarHistoricoPonto();
+  ir('tela-ponto');
+}
+
+function tirarSelfie(){
+  const input = document.createElement('input');
+  input.type = 'file'; input.accept = 'image/*'; input.capture = 'user';
+  input.onchange = e => {
+    const file = e.target.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      pontoSelfieDataURL = ev.target.result;
+      const prev = document.getElementById('ponto-selfie-prev');
+      prev.innerHTML = `<img src="${pontoSelfieDataURL}" style="width:100%;height:100%;object-fit:cover">`;
+      document.getElementById('btn-selfie').textContent = 'Refazer';
+      document.getElementById('btn-selfie').style.background = 'rgba(22,163,74,.3)';
+      document.getElementById('btn-selfie').style.color = '#86efac';
+    };
+    reader.readAsDataURL(file);
+  };
+  input.click();
+}
+
+const PONTO_CORES = {
+  ENTRADA:          {bg:'#16a34a',label:'Entrada'},
+  SAIDA:            {bg:'#dc2626',label:'Saída'},
+  INICIO_INTERVALO: {bg:'#d97706',label:'Início Intervalo'},
+  FIM_INTERVALO:    {bg:'#0891b2',label:'Fim Intervalo'},
+};
+
+/* Tipos que NÃO exigem selfie */
+const PONTO_SEM_SELFIE = new Set(['INICIO_INTERVALO','FIM_INTERVALO','SAIDA']);
+
+function registrarPonto(tipo){
+  const precisaSelfie = !PONTO_SEM_SELFIE.has(tipo);
+  if(precisaSelfie && !pontoSelfieDataURL){
+    vibrar([200,100,200]);
+    toast('Tire uma selfie para confirmar a entrada!');
+    return;
+  }
+  const agora = new Date();
+  const hora  = agora.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  const data  = agora.toISOString();
+  const u     = APP.usuario;
+  // Selfie de ENTRADA vai para o perfil do fiscal
+  if(tipo==='ENTRADA' && pontoSelfieDataURL){
+    salvarPerfilFoto(u.email, pontoSelfieDataURL);
+    setDispositivoUser(u.email, pontoSelfieDataURL);
+    // Atualiza foto exibida na tela de ponto
+    document.getElementById('ponto-foto').src = pontoSelfieDataURL;
+  }
+  const registro = {tipo, hora, data, usuario:u.email, nome:u.nome, temSelfie:!!pontoSelfieDataURL,
+                    lat:null, lng:null, endereco:null};
+  // Captura geolocalização
+  if(navigator.geolocation){
+    navigator.geolocation.getCurrentPosition(pos=>{
+      registro.lat=pos.coords.latitude;
+      registro.lng=pos.coords.longitude;
+      registro.precisao=Math.round(pos.coords.accuracy)+'m';
+      // Atualiza o registro já salvo com a localização
+      const ch='cg_pontos_'+new Date().toLocaleDateString('pt-BR').replace(/\//g,'-');
+      const lst=JSON.parse(localStorage.getItem(ch)||'[]');
+      const idx=lst.findIndex(r=>r.data===data&&r.tipo===tipo);
+      if(idx>=0){lst[idx]={...lst[idx],...{lat:registro.lat,lng:registro.lng,precisao:registro.precisao}};
+        localStorage.setItem(ch,JSON.stringify(lst));}
+      // Tenta obter nome da rua via API pública (sem chave)
+      fetch(`https://nominatim.openstreetmap.org/reverse?lat=${registro.lat}&lon=${registro.lng}&format=json&accept-language=pt`)
+        .then(r=>r.json()).then(d=>{
+          const end=d.address;
+          const rua=(end.road||end.pedestrian||end.suburb||'Local')+(end.house_number?' '+end.house_number:'');
+          const lst2=JSON.parse(localStorage.getItem(ch)||'[]');
+          const i2=lst2.findIndex(r=>r.data===data&&r.tipo===tipo);
+          if(i2>=0){lst2[i2].endereco=rua;localStorage.setItem(ch,JSON.stringify(lst2));}
+          renderizarHistoricoPonto();
+        }).catch(()=>{});
+      renderizarHistoricoPonto();
+    },()=>{},
+    {timeout:8000,enableHighAccuracy:true});
+  }
+  const chave = 'cg_pontos_'+agora.toLocaleDateString('pt-BR').replace(/\//g,'-');
+  const lista  = JSON.parse(localStorage.getItem(chave)||'[]');
+  lista.push(registro);
+  localStorage.setItem(chave, JSON.stringify(lista));
+  fetch(`${API}/pontos`, {
+    method:'POST',
+    headers:{'Content-Type':'application/json','Authorization':'Bearer cg_demo'},
+    body: JSON.stringify({...registro, selfieUrl: pontoSelfieDataURL?'[foto]':null})
+  }).catch(()=>{});
+  vibrar([50,30,150]);
+  toast(`${PONTO_CORES[tipo].label} registrada às ${hora}`);
+  renderizarHistoricoPonto();
+  // Reset selfie
+  pontoSelfieDataURL = null;
+  const prev = document.getElementById('ponto-selfie-prev');
+  if(prev) prev.innerHTML =
+    `<svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="rgba(255,255,255,.3)" stroke-width="1.5"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>`;
+  const btnSelfie = document.getElementById('btn-selfie');
+  if(btnSelfie){btnSelfie.textContent='Tirar foto';btnSelfie.style.background='rgba(99,102,241,.3)';btnSelfie.style.color='#a5b4fc';}
+  // Atualiza texto obrigatoriedade dos botões de intervalo/saída
+  atualizarBotoesIntervalo();
+}
+
+function atualizarBotoesIntervalo(){
+  // Botões de intervalo e saída não precisam de selfie — destaca visualmente
+  ['btn-inicio-intervalo','btn-fim-intervalo','btn-saida'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el&&!pontoSelfieDataURL)el.style.opacity='1';
+  });
+}
+
+function renderizarHistoricoPonto(){
+  const agora = new Date();
+  const chave = 'cg_pontos_'+agora.toLocaleDateString('pt-BR').replace(/\//g,'-');
+  const lista  = JSON.parse(localStorage.getItem(chave)||'[]');
+  const cont   = document.getElementById('historico-pontos');
+  if(!cont) return;
+  if(!lista.length){
+    cont.innerHTML = '<div style="font-size:12px;color:rgba(255,255,255,.25);text-align:center;padding:12px 0">Nenhum ponto registrado hoje</div>';
+    return;
+  }
+  cont.innerHTML = lista.slice().reverse().map(r=>{
+    const cfg = PONTO_CORES[r.tipo]||{bg:'#475569',label:r.tipo};
+    const locEl = r.endereco
+      ? `<div style="font-size:9px;color:rgba(255,255,255,.3);margin-top:2px;display:flex;align-items:center;gap:3px">
+           <svg viewBox="0 0 24 24" width="9" height="9" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+           ${r.endereco}</div>`
+      : r.lat ? `<div style="font-size:9px;color:rgba(255,255,255,.3);margin-top:2px">${r.lat.toFixed(5)}, ${r.lng.toFixed(5)}</div>` : '';
+    return `<div class="ponto-registro">
+      <div class="ponto-tipo-icon" style="background:${cfg.bg}22;border:1.5px solid ${cfg.bg}">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="${cfg.bg}" stroke-width="2.5"><circle cx="12" cy="12" r="5"/></svg>
+      </div>
+      <div style="flex:1">
+        <div class="ponto-hora">${r.hora}</div>
+        <div class="ponto-label">${cfg.label}${r.temSelfie?' · foto':''}${r.precisao?' · '+r.precisao:''}</div>
+        ${locEl}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function irParaChecklist(){
+  clearInterval(relogioInterval);
+  const u = APP.usuario;
+  document.getElementById('tipo-foto').src = u.foto;
+  document.getElementById('tipo-nome').textContent  = u.nome;
+  document.getElementById('tipo-cargo').textContent = u.cargo;
+  ir('tela-tipo');
+}
+
+/* ─── SUBITENS POR CATEGORIA DINÂMICA ─────────────────── */
+const SUBITENS = {
+  corredores:[
+    {id:'ilum',  label:'ILUMINAÇÃO',      instrucao:'Todas as lâmpadas funcionando no corredor',       tokOk:'OK',      tokNok:'FALHA',
+     foto:'https://images.unsplash.com/photo-1565814329452-e1efa11c5b89?w=500&h=260&fit=crop'},
+    {id:'piso',  label:'PISO LIMPO',      instrucao:'Piso sem sujeira, manchas ou obstáculos',         tokOk:'LIMPO',   tokNok:'SUJO',
+     foto:'https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=500&h=260&fit=crop'},
+    {id:'porta', label:'PORTAS / ACESSOS',instrucao:'Portas fechadas corretamente, sem danos',         tokOk:'OK',      tokNok:'PROBLEMA',
+     foto:'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=500&h=260&fit=crop'},
+    {id:'livre', label:'SEM OBSTÁCULOS',  instrucao:'Corredor livre — nada bloqueando a passagem',     tokOk:'LIVRE',   tokNok:'BLOQUEADO',
+     foto:'https://images.unsplash.com/photo-1497366216548-37526070297c?w=500&h=260&fit=crop'},
+  ],
+  estacionamento:[
+    {id:'ilum',  label:'ILUMINAÇÃO',        instrucao:'Setor do estacionamento bem iluminado',           tokOk:'OK',      tokNok:'FALHA',
+     foto:'https://images.unsplash.com/photo-1565814329452-e1efa11c5b89?w=500&h=260&fit=crop'},
+    {id:'canc',  label:'CANCELA / PORTÃO', instrucao:'Cancela e portão operando corretamente',          tokOk:'OK',      tokNok:'PROBLEMA',
+     foto:'https://images.unsplash.com/photo-1558618047-f4e70e31cc8b?w=500&h=260&fit=crop'},
+    {id:'vaga',  label:'VAGAS / OCUPAÇÃO', instrucao:'Nenhum veículo em área proibida ou irregular',    tokOk:'OK',      tokNok:'IRREGULAR',
+     foto:'https://images.unsplash.com/photo-1558618047-f4e70e31cc8b?w=500&h=260&fit=crop'},
+    {id:'piso',  label:'PISO LIMPO',        instrucao:'Setor varrido — sem óleo, lixo ou sujeira',      tokOk:'LIMPO',   tokNok:'SUJO',
+     foto:'https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=500&h=260&fit=crop'},
+  ],
+  lojas:[
+    {id:'fech',  label:'LOJA FECHADA',      instrucao:'Porta/grade trancada — cadeado ou fechadura OK', tokOk:'FECHADA', tokNok:'ABERTA',
+     foto:'https://images.unsplash.com/photo-1604719312566-8912e9227c6a?w=500&h=260&fit=crop'},
+    {id:'luz',   label:'VITRINE APAGADA',   instrucao:'Luzes internas e vitrine apagadas',              tokOk:'OK',      tokNok:'ACESA',
+     foto:'https://images.unsplash.com/photo-1604719312566-8912e9227c6a?w=500&h=260&fit=crop'},
+    {id:'mov',   label:'SEM MOVIMENTO',     instrucao:'Nenhuma pessoa ou atividade suspeita no local',  tokOk:'NORMAL',  tokNok:'SUSPEITO',
+     foto:'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=500&h=260&fit=crop'},
+  ],
+  limpeza:[
+    {id:'var',    label:'ÁREA LIMPA',         instrucao:'Piso varrido — sem lixo, pó ou detritos',              tokOk:'LIMPA',  tokNok:'SUJA',
+     foto:'https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=500&h=260&fit=crop'},
+    {id:'lixo',   label:'SEM LIXO AVULSO',    instrucao:'Sem lixo espalhado — lixeiras dentro do limite',       tokOk:'OK',     tokNok:'LIXO',
+     foto:'https://images.unsplash.com/photo-1605600659908-0ef719419d41?w=500&h=260&fit=crop'},
+    {id:'mancha', label:'SEM MANCHAS / ODORES',instrucao:'Paredes e piso sem manchas ou odores',                 tokOk:'OK',     tokNok:'PROBLEMA',
+     foto:'https://images.unsplash.com/photo-1497366216548-37526070297c?w=500&h=260&fit=crop'},
+    {id:'mat',    label:'MATERIAL GUARDADO',   instrucao:'Rodos, vassouras e produtos no lugar correto',         tokOk:'OK',     tokNok:'ESPALHADO',
+     foto:'https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=500&h=260&fit=crop'},
+  ],
+};
+
+const AREA_TITULOS={corredores:'CORREDORES',estacionamento:'ESTACIONAMENTO',lojas:'LOJAS',limpeza:'LIMPEZA'};
+const AREA_MODALS ={corredores:'Adicionar Corredor',estacionamento:'Adicionar Setor',lojas:'Adicionar Loja',limpeza:'Adicionar Área de Limpeza'};
+const AREA_PLACEHOLDER={corredores:'Ex: Corredor 3º Andar',estacionamento:'Ex: Setor C — Vagas 81-120',lojas:'Ex: Loja 4 — Farmácia',limpeza:'Ex: Área de Lazer'};
+
+const AREAS_DEFAULT={
+  corredores:    [{id:'c1',nome:'Corredor Térreo'},{id:'c2',nome:'Corredor 1º Andar'},{id:'c3',nome:'Corredor 2º Andar'}],
+  estacionamento:[{id:'e1',nome:'Setor A — Vagas 1 a 40'},{id:'e2',nome:'Setor B — Vagas 41 a 80'}],
+  lojas:         [{id:'l1',nome:'Loja 1'},{id:'l2',nome:'Loja 2'},{id:'l3',nome:'Loja 3'}],
+  limpeza:       [{id:'lp1',nome:'Hall Entrada'},{id:'lp2',nome:'Área Externa'},{id:'lp3',nome:'Banheiros'}],
+};
+
+function getAreasCfg(){return JSON.parse(localStorage.getItem('cg_areas_cfg')||'null')||JSON.parse(JSON.stringify(AREAS_DEFAULT));}
+function salvarAreasCfg(cfg){localStorage.setItem('cg_areas_cfg',JSON.stringify(cfg));}
+
+const AC_KEY=()=>'cg_ac_'+new Date().toLocaleDateString('pt-BR').replace(/\//g,'-')+'_'+(APP.usuario?.email||'anon');
+function getAreaChecks(){return JSON.parse(localStorage.getItem(AC_KEY())||'{}');}
+function salvarAreaCheck(areaId,subId,status){
+  const d=getAreaChecks();if(!d[areaId])d[areaId]={};d[areaId][subId]=status;
+  localStorage.setItem(AC_KEY(),JSON.stringify(d));
+}
+
+/* ─── TIPO DE VERIFICAÇÃO ──────────────────────────────── */
+function selecionarTipo(tipo){
+  APP.tipoVerificacao=tipo;
+  APP.rondaId='ronda_'+Date.now();
+  APP.respostas={};
+  APP.modoArea=false;
+  CATS={};
+  // Incendio ainda usa itens fixos
+  ['incendio'].forEach(cat=>{
+    const src=TODOS_ITENS[cat];
+    const itens=src[tipo]&&src[tipo].length>0?src[tipo]:[];
+    if(itens.length>0) CATS[cat]={titulo:src.titulo,itens};
+  });
+  // Mantém segurança no incendio para quando for ronda
+  if(!CATS.incendio){
+    const src=TODOS_ITENS['incendio'];
+    const itens=src['HORARIA']||[];
+    if(itens.length>0) CATS.incendio={titulo:src.titulo,itens};
+  }
+  const info=TIPO_INFO[tipo];
+  document.getElementById('h-foto').src=APP.usuario.foto;
+  document.getElementById('h-nome').textContent=APP.usuario.nome.split(' ')[0];
+  document.getElementById('h-tipo-label').textContent=info.nome;
+  ir('tela-home');
+  atualizaBadges();
+  atualizaBadgesAreas();
+}
+
+/* ─── NAVEGAÇÃO ───────────────────────────────────────── */
+function ir(id){
+  document.querySelectorAll('.tela').forEach(t=>t.classList.remove('ativa'));
+  document.getElementById(id).classList.add('ativa');
+}
+
+/* ─── ÁREAS DINÂMICAS ─────────────────────────────────── */
+function abrirListaAreas(cat){
+  APP.catAtivo=cat;
+  APP.modoArea=true;
+  renderizarListaAreas();
+  ir('tela-areas');
+}
+
+function renderizarListaAreas(){
+  const cat=APP.catAtivo;
+  const cfg=getAreasCfg();
+  const areas=cfg[cat]||[];
+  const checks=getAreaChecks();
+  const totalSub=SUBITENS[cat]?.length||1;
+  let done=0;let comNok=0;
+  areas.forEach(a=>{
+    const ac=checks[a.id]||{};
+    const n=Object.keys(ac).length;
+    if(n===totalSub){done++;if(Object.values(ac).includes('nok'))comNok++;}
+  });
+  document.getElementById('areas-titulo').textContent=AREA_TITULOS[cat]||cat.toUpperCase();
+  document.getElementById('areas-progresso').textContent=`${done} de ${areas.length} verificados`;
+  const pct=areas.length?done/areas.length*100:0;
+  document.getElementById('areas-barra').style.width=pct+'%';
+
+  const lista=document.getElementById('areas-lista');
+  if(!areas.length){
+    lista.innerHTML=`<div class="areas-vazio">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      <div>Nenhuma área cadastrada.<br>Toque em <strong>+ NOVO</strong> para adicionar.</div>
+    </div>`;
+    return;
+  }
+
+  // Resumo lojas
+  let resumo='';
+  if(cat==='lojas'&&done>0){
+    const ok=done-comNok;
+    resumo=`<div class="lojas-resumo ${comNok?'lojas-alerta':'lojas-ok'}">
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.5">
+        ${comNok?'<path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>'
+                :'<polyline points="20 6 9 17 4 12"/>'}
+      </svg>
+      <div>
+        <div style="font-weight:800;font-size:14px">${comNok?`${comNok} LOJA(S) COM PROBLEMA`:'TODAS AS LOJAS FECHADAS'}</div>
+        <div style="font-size:11px;opacity:.75">${ok} OK · ${comNok} com falha · ${areas.length-done} pendente(s)</div>
+      </div>
+    </div>`;
+  }
+
+  lista.innerHTML = resumo + areas.map((a,idx)=>{
+    const ac=checks[a.id]||{};
+    const n=Object.keys(ac).length;
+    const completo=n===totalSub;
+    const hasNok=Object.values(ac).includes('nok');
+    let cls='',statusTxt=`${n}/${totalSub} verificados`,icon='';
+    if(completo&&!hasNok){
+      cls='area-ok';statusTxt='Tudo OK';
+      icon=`<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#22c55e" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>`;
+    }else if(hasNok){
+      cls='area-nok';
+      const nNok=Object.values(ac).filter(v=>v==='nok').length;
+      statusTxt=`${nNok} falha${nNok>1?'s':''}`;
+      icon=`<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#ef4444" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`;
+    }else{
+      icon=`<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="rgba(255,255,255,.25)" stroke-width="2"><circle cx="12" cy="12" r="9"/></svg>`;
+    }
+    return `<div class="area-card ${cls}" onclick="abrirSubitens('${a.id}')">
+      <div class="area-num">${idx+1}</div>
+      <div class="area-info">
+        <div class="area-nome">${a.nome}</div>
+        <div class="area-status-txt">${statusTxt}</div>
+      </div>
+      <div class="area-status-icon">${icon}</div>
+      <button class="area-del-btn" onclick="event.stopPropagation();removerArea('${a.id}')">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="rgba(255,255,255,.25)" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+    </div>`;
+  }).join('');
+}
+
+function abrirSubitens(areaId){
+  const cat=APP.catAtivo;
+  const cfg=getAreasCfg();
+  const area=(cfg[cat]||[]).find(a=>a.id===areaId);
+  APP.areaAtiva=areaId;
+  const itens=SUBITENS[cat]||[];
+  const checks=getAreaChecks();
+  const ac=checks[areaId]||{};
+  // Pré-preenche APP.respostas com o que já foi feito
+  APP.respostas={};
+  itens.forEach(s=>{if(ac[s.id])APP.respostas[s.id]=ac[s.id]==='ok'?'OK':'NOK';});
+  const catKey=`area_${areaId}`;
+  CATS[catKey]={titulo:area?.nome||areaId,itens};
+  APP.catAtual=catKey;
+  document.getElementById('cat-titulo').textContent=area?.nome||areaId;
+  const sub=document.getElementById('cat-subtitulo');
+  sub.textContent=AREA_TITULOS[cat]||''; sub.style.display='block';
+  document.getElementById('checklist-itens').innerHTML=itens.map(i=>renderItem(i,catKey)).join('');
+  ir('tela-checklist');
+}
+
+function adicionarArea(){
+  const cat=APP.catAtivo;
+  document.getElementById('modal-area-titulo').textContent=AREA_MODALS[cat]||'Adicionar Área';
+  document.getElementById('nova-area-nome').placeholder=AREA_PLACEHOLDER[cat]||'Nome da área';
+  document.getElementById('nova-area-nome').value='';
+  document.getElementById('modal-nova-area').classList.add('visivel');
+  setTimeout(()=>document.getElementById('nova-area-nome').focus(),300);
+}
+function fecharModalArea(){document.getElementById('modal-nova-area').classList.remove('visivel');}
+function confirmarNovaArea(){
+  const nome=document.getElementById('nova-area-nome').value.trim();
+  if(!nome){vibrar([100]);toast('Digite o nome da área');return;}
+  const cat=APP.catAtivo;
+  const cfg=getAreasCfg();
+  if(!cfg[cat])cfg[cat]=[];
+  const id=cat[0]+Date.now().toString(36);
+  cfg[cat].push({id,nome});
+  salvarAreasCfg(cfg);
+  fecharModalArea();
+  renderizarListaAreas();
+  atualizaBadgesAreas();
+  vibrar([50,30,100]);
+  toast(`"${nome}" adicionado(a)`);
+}
+function removerArea(id){
+  const cat=APP.catAtivo;
+  const cfg=getAreasCfg();
+  cfg[cat]=(cfg[cat]||[]).filter(a=>a.id!==id);
+  salvarAreasCfg(cfg);
+  renderizarListaAreas();
+  atualizaBadgesAreas();
+}
+
+function atualizaBadgesAreas(){
+  const cfg=getAreasCfg();
+  const checks=getAreaChecks();
+  Object.keys(SUBITENS).forEach(cat=>{
+    const areas=cfg[cat]||[];
+    const totalSub=SUBITENS[cat].length;
+    const done=areas.filter(a=>{const ac=checks[a.id]||{};return Object.keys(ac).length===totalSub;}).length;
+    const b=document.getElementById('badge-'+cat);
+    if(!b)return;
+    b.textContent=done+'/'+areas.length;
+    b.className='bloco-badge '+(done===areas.length&&areas.length>0?'badge-completo':done>0?'badge-parcial':'badge-vazio');
+  });
+  // Barra global (áreas + incendio)
+  const cfgAreas=Object.keys(SUBITENS);
+  const totalAreas=cfgAreas.reduce((s,c)=>{const a=cfg[c]||[];return s+a.length*SUBITENS[c].length;},0);
+  const doneAreas=cfgAreas.reduce((s,c)=>{
+    const a=cfg[c]||[],sub=SUBITENS[c].length;
+    return s+a.reduce((x,ar)=>{const ac=checks[ar.id]||{};return x+Math.min(Object.keys(ac).length,sub);},0);
+  },0);
+  const totalFixed=Object.values(CATS).reduce((a,c)=>a+c.itens.length,0);
+  const doneFixed=Object.keys(APP.respostas).filter(k=>APP.respostas[k]).length;
+  const total=totalAreas+totalFixed;const done2=doneAreas+doneFixed;
+  document.getElementById('barra-global').style.width=(total?done2/total*100:0)+'%';
+}
+
+function voltarDoChecklist(){
+  atualizaBadges();
+  if(APP.modoArea){
+    const sub=document.getElementById('cat-subtitulo');
+    if(sub)sub.style.display='none';
+    renderizarListaAreas();
+    atualizaBadgesAreas();
+    ir('tela-areas');
+  }else{
+    ir('tela-home');
+  }
+}
+
+function abrirCat(cat){
+  if(!CATS[cat])return;
+  APP.catAtual=cat;
+  APP.modoArea=false;
+  document.getElementById('cat-titulo').textContent=CATS[cat].titulo;
+  const sub=document.getElementById('cat-subtitulo');if(sub)sub.style.display='none';
+  document.getElementById('checklist-itens').innerHTML=CATS[cat].itens.map(i=>renderItem(i,cat)).join('');
+  ir('tela-checklist');
+}
+
+function renderItem(item,cat){
+  const r=APP.respostas[item.id];
+  const cls='item-card'+(r?' '+(r==='OK'?'ok':'nok'):'');
+  const mensal=APP.tipoVerificacao==='MENSAL';
+  const avisoMensal=mensal&&item.fotoOk
+    ?'<div class="mensal-aviso">Inspeção mensal — fotografe mesmo que esteja conforme</div>':''  ;
+  const res=r?`<div class="item-resultado">${r==='OK'?'✓ OK':'✗ NOK'}</div>`:'';
+  return`
+  <div class="${cls}" id="card-${item.id}">
+    <img class="item-foto" src="${item.foto}" alt="${item.label}"
+         onerror="this.style.display='none'">
+    <div class="item-label">${item.label}</div>
+    ${item.instrucao?`<div class="item-instrucao">${item.instrucao}</div>`:''}
+    ${avisoMensal}
+    <div class="item-botoes">
+      <button class="btn-ok"  onclick="marcarOK('${item.id}','${cat}')">
+        <span class="btn-icon"><svg viewBox="0 0 24 24" width="32" height="32"><polyline points="20 6 9 17 4 12"/></svg></span>
+        <span class="btn-texto">${item.tokOk}</span>
+      </button>
+      <button class="btn-nok" onclick="marcarNOK('${item.id}','${cat}')">
+        <span class="btn-icon"><svg viewBox="0 0 24 24" width="32" height="32"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></span>
+        <span class="btn-texto">${item.tokNok}</span>
+      </button>
+    </div>
+    ${res}
+  </div>`;
+}
+
+/* ─── CHECKLIST ───────────────────────────────────────── */
+function marcarOK(id,cat){
+  const item=CATS[cat]?.itens.find(i=>i.id===id);
+  APP.respostas[id]='OK';
+  vibrar([40]);
+  refreshCard(id,cat);
+  // Salva na sessão de área se estiver em modo área
+  if(APP.modoArea&&APP.areaAtiva)salvarAreaCheck(APP.areaAtiva,id,'ok');
+  if(item?.fotoOk){
+    APP.itemAtual={id,cat,statusForcado:'OK'};
+    APP.modoAvulso=false;
+    toast('Fotografe o ponto — inspeção mensal');
+    abrirCamera();
+    return;
+  }
+  toast('Registrado como OK');
+  salvar(id,'OK',null,null);
+  verificarAreaCompleta(cat);
+}
+
+function marcarNOK(id,cat){
+  APP.respostas[id]='NOK';
+  APP.itemAtual={id,cat};
+  APP.modoAvulso=false;
+  vibrar([70,35,70]);
+  refreshCard(id,cat);
+  if(APP.modoArea&&APP.areaAtiva)salvarAreaCheck(APP.areaAtiva,id,'nok');
+  abrirCamera();
+}
+
+function verificarAreaCompleta(cat){
+  if(!APP.modoArea)return;
+  const itens=CATS[cat]?.itens||[];
+  const todosRespondidos=itens.every(i=>APP.respostas[i.id]);
+  if(todosRespondidos){
+    vibrar([50,20,50,20,150]);
+    toast('Área concluída!');
+    setTimeout(()=>{
+      atualizaBadgesAreas();
+      renderizarListaAreas();
+      const sub=document.getElementById('cat-subtitulo');if(sub)sub.style.display='none';
+      ir('tela-areas');
+    },1400);
+  }
+}
+
+function relatarAvulso(){
+  APP.itemAtual={id:'avulso_'+Date.now(),cat:'avulso'};
+  APP.modoAvulso=true;
+  abrirCamera();
+}
+
+function refreshCard(id,cat){
+  const el=document.getElementById('card-'+id);
+  if(!el)return;
+  const r=APP.respostas[id];
+  el.className='item-card '+(r==='OK'?'ok':'nok');
+  let res=el.querySelector('.item-resultado');
+  if(!res){res=document.createElement('div');res.className='item-resultado';el.appendChild(res);}
+  res.textContent=r==='OK'?'✓ OK':'✗ NOK';
+  res.style.animation='none';void res.offsetWidth;res.style.animation='pop .3s cubic-bezier(.17,.67,.29,1.5)';
+}
+
+function atualizaBadges(){
+  const totalGeral=Object.values(CATS).reduce((a,c)=>a+c.itens.length,0);
+  const respGeral=Object.keys(APP.respostas).filter(k=>APP.respostas[k]).length;
+  document.getElementById('barra-global').style.width=(totalGeral?respGeral/totalGeral*100:0)+'%';
+  Object.keys(CATS).forEach(cat=>{
+    const c=CATS[cat];
+    const n=c.itens.filter(i=>APP.respostas[i.id]).length;
+    const b=document.getElementById('badge-'+cat);
+    if(!b)return;
+    b.textContent=n+'/'+c.itens.length;
+    b.className='bloco-badge '+(n===c.itens.length?'badge-completo':n>0?'badge-parcial':'badge-vazio');
+  });
+}
+
+/* ─── CÂMERA ──────────────────────────────────────────── */
+async function abrirCamera(){
+  ir('tela-camera');
+  try{
+    const s=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment',width:{ideal:1280},height:{ideal:960}}});
+    APP.stream=s;
+    document.getElementById('cam-video').srcObject=s;
+  }catch{
+    toast('Câmera indisponível — simulando captura');
+    APP.mediaFoto='[foto_capturada]';
+    setTimeout(()=>APP.itemAtual&&!APP.modoAvulso&&APP.itemAtual.statusForcado==='OK'?finalizarOK():abrirAudio(),600);
+  }
+}
+
+function capturarFoto(){
+  const v=document.getElementById('cam-video'),c=document.getElementById('cam-canvas');
+  vibrar([55]);
+  c.width=v.videoWidth||640;c.height=v.videoHeight||480;
+  // Adiciona coordenadas como texto na foto se disponível
+  const ctx=c.getContext('2d');
+  ctx.drawImage(v,0,0);
+  // Watermark de geolocalização
+  if(APP.geoAtual){
+    const txt=`${APP.geoAtual.lat.toFixed(5)}, ${APP.geoAtual.lng.toFixed(5)} · ${new Date().toLocaleString('pt-BR')}`;
+    ctx.fillStyle='rgba(0,0,0,.55)';
+    ctx.fillRect(0,c.height-28,c.width,28);
+    ctx.fillStyle='#fff';ctx.font='12px monospace';
+    ctx.fillText(txt,8,c.height-9);
+  }
+  APP.mediaFoto=c.toDataURL('image/jpeg',.82);
+  pararStream();
+  document.getElementById('tela-camera').style.filter='brightness(4)';
+  setTimeout(()=>{
+    document.getElementById('tela-camera').style.filter='';
+    if(APP.itemAtual?.statusForcado==='OK') finalizarOK();
+    else abrirAudio();
+  },160);
+}
+
+/* Mantém geolocalização em cache para watermark de foto */
+(function iniciarGeo(){
+  if(!navigator.geolocation)return;
+  function atualizar(){
+    navigator.geolocation.getCurrentPosition(p=>{
+      APP.geoAtual={lat:p.coords.latitude,lng:p.coords.longitude,precisao:p.coords.accuracy};
+    },()=>{},{enableHighAccuracy:true,maximumAge:30000});
+  }
+  atualizar();
+  setInterval(atualizar,30000);
+})();
+
+function cancelarCamera(){
+  pararStream();
+  if(APP.modoAvulso){ir('tela-home');return;}
+  delete APP.respostas[APP.itemAtual?.id];
+  ir('tela-checklist');
+}
+
+function pararStream(){
+  APP.stream?.getTracks().forEach(t=>t.stop());
+  APP.stream=null;
+  document.getElementById('cam-video').srcObject=null;
+}
+
+function finalizarOK(){
+  const{id,cat}=APP.itemAtual;
+  salvar(id,'OK',APP.mediaFoto,null);
+  ir('tela-ok');
+  document.getElementById('ok-msg').textContent='Foto da conformidade registrada.';
+  vibrar([50,20,100]);
+  setTimeout(()=>{
+    atualizaBadges();
+    verificarAreaCompleta(cat);
+    if(!APP.modoArea)ir('tela-checklist');
+  },2000);
+}
+
+/* ─── ÁUDIO ───────────────────────────────────────────── */
+function gerarOnda(){
+  document.getElementById('onda').innerHTML=
+    Array.from({length:20},(_,i)=>`<span style="animation-delay:${i*.06}s;animation-duration:${.5+Math.random()*.4}s"></span>`).join('');
+}
+
+async function abrirAudio(){
+  ir('tela-audio');
+  APP.secsAudio=0;APP.chunks=[];
+  atualizaTimer();
+  try{
+    const s=await navigator.mediaDevices.getUserMedia({audio:true});
+    APP.recorder=new MediaRecorder(s);
+    APP.recorder.ondataavailable=e=>APP.chunks.push(e.data);
+    APP.recorder.onstop=()=>{
+      const blob=new Blob(APP.chunks,{type:'audio/webm'});
+      APP.mediaAudio=URL.createObjectURL(blob);
+      s.getTracks().forEach(t=>t.stop());
+      finalizarNOK();
+    };
+    APP.recorder.start();
+    setTimeout(()=>APP.recorder?.state==='recording'&&pararAudio(),60000);
+  }catch{
+    toast('Microfone indisponível');
+    APP.mediaAudio='[audio_simulado]';
+    setTimeout(finalizarNOK,800);return;
+  }
+  APP.timerAudio=setInterval(()=>{APP.secsAudio++;atualizaTimer();},1000);
+}
+
+function atualizaTimer(){
+  const m=Math.floor(APP.secsAudio/60),s=String(APP.secsAudio%60).padStart(2,'0');
+  document.getElementById('audio-timer').textContent=m+':'+s;
+}
+
+function pararAudio(){
+  clearInterval(APP.timerAudio);
+  APP.recorder?.state==='recording'?APP.recorder.stop():finalizarNOK();
+}
+
+function finalizarNOK(){
+  const{id,cat}=APP.itemAtual;
+  if(!APP.modoAvulso)refreshCard(id,cat);
+  salvar(id,APP.modoAvulso?'NOK_AVULSO':'NOK',APP.mediaFoto,APP.mediaAudio);
+  ir('tela-ok');
+  document.getElementById('ok-msg').textContent=APP.modoAvulso
+    ?'Inconformidade registrada com foto e áudio.'
+    :'Foto e áudio do problema enviados para análise.';
+  vibrar([70,35,180]);
+  setTimeout(()=>{
+    atualizaBadges();
+    if(APP.modoAvulso){ir('tela-home');return;}
+    verificarAreaCompleta(cat);
+    if(!APP.modoArea)ir('tela-checklist');
+  },2200);
+}
+
+/* ─── PERSISTÊNCIA ────────────────────────────────────── */
+function salvar(itemId,status,foto,audio){
+  const reg={
+    id:crypto.randomUUID?.()??Math.random().toString(36).slice(2),
+    rondaId:APP.rondaId, tipo:APP.tipoVerificacao,
+    usuarioId:APP.usuario?.email, itemId, status,
+    catAtivo:APP.catAtivo||null, areaAtiva:APP.areaAtiva||null,
+    fotoCapturada:!!foto, audioCapturado:!!audio,
+    lat:null, lng:null, precisao:null, endereco:null,
+    ts:new Date().toISOString(), sync:false,
+  };
+  const arr=JSON.parse(localStorage.getItem('cg_regs')||'[]');
+  arr.push(reg); localStorage.setItem('cg_regs',JSON.stringify(arr));
+  // Captura localização e atualiza o registro
+  if(navigator.geolocation){
+    navigator.geolocation.getCurrentPosition(pos=>{
+      reg.lat=pos.coords.latitude;
+      reg.lng=pos.coords.longitude;
+      reg.precisao=Math.round(pos.coords.accuracy);
+      // Geocodificação reversa gratuita (Nominatim, sem chave de API)
+      fetch(`https://nominatim.openstreetmap.org/reverse?lat=${reg.lat}&lon=${reg.lng}&format=json&accept-language=pt`)
+        .then(r=>r.json()).then(d=>{
+          const a=d.address||{};
+          reg.endereco=(a.road||a.pedestrian||a.suburb||'')+(a.house_number?' '+a.house_number:'')
+                       +(a.suburb?', '+a.suburb:'');
+          _persistirRegistro(reg);
+        }).catch(()=>_persistirRegistro(reg));
+    },()=>_persistirRegistro(reg),{timeout:6000,enableHighAccuracy:true});
+  } else {
+    _persistirRegistro(reg);
+  }
+}
+
+function _persistirRegistro(reg){
+  // Atualiza no localStorage com localização
+  const arr=JSON.parse(localStorage.getItem('cg_regs')||'[]');
+  const idx=arr.findIndex(r=>r.id===reg.id);
+  if(idx>=0)arr[idx]={...arr[idx],...reg};
+  else arr.push(reg);
+  localStorage.setItem('cg_regs',JSON.stringify(arr));
+  // Envia para API
+  fetch(`${API}/registros`,{
+    method:'POST',
+    headers:{'Content-Type':'application/json','Authorization':'Bearer cg_demo'},
+    body:JSON.stringify({...reg,
+      coordenadas:reg.lat?`${reg.lat.toFixed(6)},${reg.lng.toFixed(6)}`:null,
+      linkMapa:reg.lat?`https://maps.google.com/?q=${reg.lat},${reg.lng}`:null
+    })
+  }).catch(()=>{});
+}
+
+/* ─── PÂNICO ──────────────────────────────────────────── */
+function iniciaPanico(e){
+  e?.preventDefault();vibrar([200]);
+  const b=document.getElementById('btn-panico');
+  b.style.filter='brightness(.7)';
+  APP.timerPanico=setTimeout(acionarPanico,2000);
+}
+function cancelaPanico(){
+  clearTimeout(APP.timerPanico);
+  document.getElementById('btn-panico').style.filter='';
+}
+function acionarPanico(){
+  vibrar([400,80,400,80,800]);
+  const alerta={id:Math.random().toString(36).slice(2),tipo:'PANICO',
+    usuarioId:APP.usuario?.email,usuarioNome:APP.usuario?.nome,ts:new Date().toISOString()};
+  const arr=JSON.parse(localStorage.getItem('cg_alertas')||'[]');
+  arr.push(alerta);localStorage.setItem('cg_alertas',JSON.stringify(arr));
+  fetch(`${API}/alertas/panico`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(alerta)}).catch(()=>{});
+  document.getElementById('overlay-panico').classList.add('visivel');
+}
+function fecharPanico(){document.getElementById('overlay-panico').classList.remove('visivel');}
+
+/* ─── UTILS ───────────────────────────────────────────── */
+function vibrar(p){navigator.vibrate?.(p);}
+function toast(msg,ms=2400){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('visivel');
+  setTimeout(()=>t.classList.remove('visivel'),ms);
+}
+</script>
+</body>
+</html>

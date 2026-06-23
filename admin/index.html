@@ -1,0 +1,1489 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CondoGest — Painel Administrativo — ronda.prointegraserv.com.br</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/lucide@0.344.0/dist/umd/lucide.min.js"></script>
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<!-- jsPDF + html2canvas para relatórios -->
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<style>
+/* ══════════════════════════════════════════════════════════
+   RESET & VARIÁVEIS
+══════════════════════════════════════════════════════════ */
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --sidebar-w:252px;
+  --azul:#2563eb;--azul-claro:#dbeafe;--azul-escuro:#1e40af;
+  --verde:#16a34a;--amarelo:#d97706;--vermelho:#dc2626;--laranja:#ea580c;
+  --roxo:#7c3aed;
+  --bg:#f1f5f9;--card:#ffffff;--sidebar:#0f172a;--sidebar-item:rgba(255,255,255,.07);
+  --texto:#1e293b;--texto-sub:#64748b;--borda:#e2e8f0;
+  --sombra:0 1px 3px rgba(0,0,0,.06),0 1px 2px rgba(0,0,0,.04);
+  --sombra-md:0 4px 16px rgba(0,0,0,.08);
+}
+body{font-family:'Inter','Segoe UI',system-ui,sans-serif;background:var(--bg);color:var(--texto);
+  display:flex;height:100vh;overflow:hidden}
+
+/* ══════════════════════════════════════════════════════════
+   SIDEBAR
+══════════════════════════════════════════════════════════ */
+.sidebar{
+  width:var(--sidebar-w);background:var(--sidebar);
+  display:flex;flex-direction:column;flex-shrink:0;overflow:hidden
+}
+.sidebar-logo{
+  padding:24px 20px 20px;border-bottom:1px solid rgba(255,255,255,.08);
+}
+.logo-nome{font-size:22px;font-weight:900;color:#fff;letter-spacing:-.3px}
+.logo-url {font-size:11px;color:rgba(255,255,255,.35);margin-top:3px}
+.sidebar-nav{flex:1;overflow-y:auto;padding:12px 0}
+.nav-section{font-size:10px;font-weight:700;letter-spacing:.1em;
+  color:rgba(255,255,255,.3);padding:16px 20px 6px;text-transform:uppercase}
+.nav-item{
+  display:flex;align-items:center;gap:12px;padding:11px 20px;
+  color:rgba(255,255,255,.65);font-size:14px;font-weight:500;cursor:pointer;
+  border-radius:0;transition:all .15s;margin:0 8px;border-radius:10px
+}
+.nav-item:hover{background:var(--sidebar-item);color:#fff}
+.nav-item.ativo{background:var(--azul);color:#fff;font-weight:700}
+.nav-icon{font-size:18px;width:22px;text-align:center;flex-shrink:0}
+.sidebar-footer{
+  padding:16px 20px;border-top:1px solid rgba(255,255,255,.08);
+  display:flex;align-items:center;gap:10px
+}
+.sidebar-footer img{width:36px;height:36px;border-radius:50%;object-fit:cover;flex-shrink:0}
+.sidebar-user{flex:1;overflow:hidden}
+.sidebar-user-name{font-size:13px;font-weight:600;color:#fff;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sidebar-user-role{font-size:11px;color:rgba(255,255,255,.4)}
+
+/* ══════════════════════════════════════════════════════════
+   MAIN
+══════════════════════════════════════════════════════════ */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+
+/* ── Topbar ──────────────────────────────────────────────── */
+.topbar{
+  background:var(--card);border-bottom:1px solid var(--borda);
+  padding:0 28px;height:60px;display:flex;align-items:center;
+  justify-content:space-between;flex-shrink:0;box-shadow:var(--sombra)
+}
+.topbar-titulo{font-size:19px;font-weight:700;color:var(--texto)}
+.topbar-acoes{display:flex;align-items:center;gap:12px}
+.topbar-data{font-size:13px;color:var(--texto-sub)}
+.btn-notif{
+  width:36px;height:36px;border-radius:50%;background:var(--bg);
+  border:1px solid var(--borda);cursor:pointer;font-size:16px;
+  position:relative;display:flex;align-items:center;justify-content:center
+}
+.badge-notif{
+  position:absolute;top:4px;right:4px;background:var(--vermelho);
+  width:8px;height:8px;border-radius:50%;border:1.5px solid var(--card)
+}
+
+/* ── Conteúdo ─────────────────────────────────────────────── */
+.content{flex:1;overflow-y:auto;padding:24px 28px}
+.section{display:none}
+.section.ativa{display:block}
+
+/* ── KPI Cards ──────────────────────────────────────────── */
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px}
+.kpi-card{
+  background:var(--card);border-radius:14px;padding:20px;
+  box-shadow:var(--sombra);border:1px solid var(--borda);
+  display:flex;align-items:flex-start;gap:14px
+}
+.kpi-icon{
+  width:46px;height:46px;border-radius:12px;font-size:22px;
+  display:flex;align-items:center;justify-content:center;flex-shrink:0
+}
+.kpi-icon.verde {background:#dcfce7;color:var(--verde)}
+.kpi-icon.azul  {background:#dbeafe;color:var(--azul)}
+.kpi-icon.amarelo{background:#fef9c3;color:var(--amarelo)}
+.kpi-icon.vermelho{background:#fee2e2;color:var(--vermelho)}
+.kpi-info{flex:1}
+.kpi-label{font-size:12px;color:var(--texto-sub);font-weight:500;text-transform:uppercase;letter-spacing:.04em}
+.kpi-valor{font-size:30px;font-weight:800;color:var(--texto);line-height:1.1;margin-top:4px}
+.kpi-delta{font-size:12px;margin-top:4px;font-weight:600}
+.delta-up  {color:var(--verde)}
+.delta-down{color:var(--vermelho)}
+
+/* ── Chart Grid ────────────────────────────────────────── */
+.chart-grid{display:grid;grid-template-columns:2fr 1fr;gap:16px;margin-bottom:24px}
+.chart-card,.heat-card{
+  background:var(--card);border-radius:14px;padding:22px;
+  box-shadow:var(--sombra);border:1px solid var(--borda)
+}
+.chart-titulo{font-size:14px;font-weight:700;margin-bottom:16px;color:var(--texto)}
+.chart-wrap{height:220px;position:relative}
+
+/* Heatmap de setores */
+.heat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px}
+.heat-cell{
+  border-radius:8px;padding:8px 10px;font-size:12px;font-weight:600;line-height:1.3
+}
+.heat-0{background:#f0fdf4;color:#166534}
+.heat-1{background:#fef9c3;color:#854d0e}
+.heat-2{background:#ffedd5;color:#9a3412}
+.heat-3{background:#fee2e2;color:#991b1b}
+.heat-nome{font-weight:700}
+.heat-cnt {font-size:11px;opacity:.75}
+
+/* ── Tabela Rondas ──────────────────────────────────────── */
+.tabela-card{
+  background:var(--card);border-radius:14px;box-shadow:var(--sombra);
+  border:1px solid var(--borda);overflow:hidden;margin-bottom:24px
+}
+.tabela-header{
+  padding:16px 20px;display:flex;align-items:center;justify-content:space-between;
+  border-bottom:1px solid var(--borda)
+}
+.tabela-titulo{font-size:14px;font-weight:700}
+.btn-acao{
+  padding:7px 16px;border-radius:8px;border:none;cursor:pointer;
+  font-size:13px;font-weight:600;transition:all .15s
+}
+.btn-acao.primario{background:var(--azul);color:#fff}
+.btn-acao.primario:hover{background:var(--azul-escuro)}
+.btn-acao.secundario{background:var(--bg);color:var(--texto);border:1px solid var(--borda)}
+.btn-acao.secundario:hover{background:var(--borda)}
+.btn-acao.verde{background:#dcfce7;color:var(--verde);border:1px solid #bbf7d0}
+.btn-acao.vermelho-claro{background:#fee2e2;color:var(--vermelho);border:1px solid #fecaca}
+table{width:100%;border-collapse:collapse}
+thead th{
+  padding:10px 20px;text-align:left;font-size:11px;font-weight:700;
+  color:var(--texto-sub);text-transform:uppercase;letter-spacing:.05em;
+  background:#f8fafc;border-bottom:1px solid var(--borda)
+}
+tbody td{
+  padding:14px 20px;font-size:13px;border-bottom:1px solid #f1f5f9;
+  vertical-align:middle
+}
+tbody tr:last-child td{border-bottom:none}
+tbody tr:hover td{background:#f8fafc}
+.fiscal-cell{display:flex;align-items:center;gap:10px}
+.fiscal-cell img{width:34px;height:34px;border-radius:50%;object-fit:cover;flex-shrink:0}
+.fiscal-cell-nome{font-weight:600}
+.fiscal-cell-sub{font-size:11px;color:var(--texto-sub);margin-top:1px}
+.badge{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;
+  border-radius:20px;font-size:12px;font-weight:700}
+.badge-verde    {background:#dcfce7;color:var(--verde)}
+.badge-azul     {background:#dbeafe;color:var(--azul)}
+.badge-amarelo  {background:#fef9c3;color:#92400e}
+.badge-vermelho {background:#fee2e2;color:var(--vermelho)}
+.badge-cinza    {background:#f1f5f9;color:#64748b}
+.badge-roxo     {background:#ede9fe;color:var(--roxo)}
+.progress-mini{height:6px;background:#e2e8f0;border-radius:3px;margin-top:4px;width:80px}
+.progress-mini-fill{height:6px;border-radius:3px;background:var(--azul)}
+
+/* ── Triagem de Incidentes ──────────────────────────────── */
+.triagem-grid{display:grid;grid-template-columns:1fr 1.5fr;gap:16px;margin-bottom:24px;min-height:480px}
+.inc-lista{display:flex;flex-direction:column;gap:10px;overflow-y:auto;max-height:600px}
+.inc-card{
+  background:var(--card);border-radius:12px;padding:14px;border:1px solid var(--borda);
+  cursor:pointer;transition:all .15s;box-shadow:var(--sombra)
+}
+.inc-card:hover{box-shadow:var(--sombra-md);transform:translateY(-1px)}
+.inc-card.selecionado{border-color:var(--azul);box-shadow:0 0 0 2px var(--azul-claro)}
+.inc-topo{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.inc-prioridade{
+  width:8px;height:8px;border-radius:50%;flex-shrink:0
+}
+.priori-critica{background:var(--vermelho)}
+.priori-alta   {background:var(--laranja)}
+.priori-media  {background:var(--amarelo)}
+.priori-baixa  {background:var(--verde)}
+.inc-categoria{font-size:11px;font-weight:700;text-transform:uppercase;color:var(--texto-sub)}
+.inc-hora      {margin-left:auto;font-size:11px;color:var(--texto-sub)}
+.inc-item      {font-size:14px;font-weight:700;margin-bottom:4px}
+.inc-local     {font-size:12px;color:var(--texto-sub)}
+.inc-midias    {display:flex;gap:6px;margin-top:8px}
+.inc-midia-badge{
+  background:#f1f5f9;border-radius:6px;padding:3px 8px;
+  font-size:11px;font-weight:600;color:var(--texto-sub)
+}
+
+/* Viewer de mídias */
+.viewer-card{
+  background:var(--card);border-radius:14px;padding:0;
+  box-shadow:var(--sombra-md);border:1px solid var(--borda);overflow:hidden;
+  display:flex;flex-direction:column
+}
+.viewer-header{padding:16px 20px;border-bottom:1px solid var(--borda);display:flex;align-items:center;justify-content:space-between}
+.viewer-titulo{font-size:14px;font-weight:700}
+.viewer-body{flex:1;padding:20px;display:flex;flex-direction:column;gap:16px}
+.viewer-foto{
+  width:100%;border-radius:10px;object-fit:cover;max-height:240px;
+  border:1px solid var(--borda);background:#f1f5f9;display:block
+}
+.viewer-audio-section h4{font-size:13px;font-weight:700;margin-bottom:8px;color:var(--texto-sub)}
+audio{width:100%;border-radius:8px}
+.viewer-meta{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.meta-item{background:#f8fafc;border-radius:8px;padding:10px}
+.meta-label{font-size:10px;font-weight:700;text-transform:uppercase;color:var(--texto-sub);letter-spacing:.04em}
+.meta-valor{font-size:13px;font-weight:600;margin-top:2px}
+.viewer-acoes{padding:16px 20px;border-top:1px solid var(--borda);display:flex;gap:10px}
+.viewer-vazia{
+  flex:1;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;gap:12px;padding:40px;text-align:center
+}
+.viewer-vazia .icone{font-size:48px;opacity:.3}
+.viewer-vazia p{color:var(--texto-sub);font-size:14px}
+
+/* ── Relatórios ─────────────────────────────────────────── */
+.relatorio-config{
+  background:var(--card);border-radius:14px;padding:24px;
+  box-shadow:var(--sombra);border:1px solid var(--borda);margin-bottom:20px
+}
+.config-titulo{font-size:15px;font-weight:700;margin-bottom:18px;display:flex;align-items:center;gap:8px}
+.form-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:16px}
+.form-group label{display:block;font-size:12px;font-weight:700;color:var(--texto-sub);
+  text-transform:uppercase;letter-spacing:.04em;margin-bottom:6px}
+.form-group select,.form-group input{
+  width:100%;padding:9px 12px;border-radius:8px;border:1px solid var(--borda);
+  font-size:13px;color:var(--texto);background:var(--card);outline:none;transition:border .15s
+}
+.form-group select:focus,.form-group input:focus{border-color:var(--azul)}
+.rel-acoes{display:flex;gap:10px;align-items:center;padding-top:4px}
+.preview-card{
+  background:var(--card);border-radius:14px;box-shadow:var(--sombra);
+  border:1px solid var(--borda);overflow:hidden
+}
+
+/* Prévia do relatório PDF */
+#pdf-preview{padding:32px 40px;max-width:860px;margin:0 auto;background:#fff;font-family:'Segoe UI',sans-serif}
+.pdf-cabecalho{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:24px;padding-bottom:16px;border-bottom:2px solid #e2e8f0}
+.pdf-logo-area{display:flex;align-items:center;gap:14px}
+.pdf-logo-icon{font-size:48px}
+.pdf-empresa-nome{font-size:22px;font-weight:900;color:#0f172a}
+.pdf-empresa-sub{font-size:13px;color:#64748b;margin-top:2px}
+.pdf-periodo{text-align:right}
+.pdf-periodo-label{font-size:11px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.06em}
+.pdf-periodo-valor{font-size:16px;font-weight:700;color:#1e293b;margin-top:2px}
+.pdf-paginacao{font-size:12px;color:#94a3b8;margin-top:4px}
+.pdf-titulo-relatorio{font-size:20px;font-weight:900;color:#0f172a;margin-bottom:20px;text-align:center}
+.pdf-stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:24px}
+.pdf-stat{border-radius:10px;padding:14px;text-align:center}
+.pdf-stat-valor{font-size:30px;font-weight:900;line-height:1}
+.pdf-stat-label{font-size:11px;margin-top:4px;font-weight:600;opacity:.8}
+.pdf-stat.verde  {background:#dcfce7;color:#166534}
+.pdf-stat.azul   {background:#dbeafe;color:#1e40af}
+.pdf-stat.amarelo{background:#fef9c3;color:#92400e}
+.pdf-stat.vermelho{background:#fee2e2;color:#991b1b}
+.pdf-secao-titulo{font-size:14px;font-weight:800;color:#0f172a;
+  margin:20px 0 10px;padding-bottom:6px;border-bottom:1.5px solid #e2e8f0;
+  text-transform:uppercase;letter-spacing:.04em}
+.pdf-tabela{width:100%;border-collapse:collapse;font-size:12px;margin-bottom:20px}
+.pdf-tabela th{background:#f8fafc;padding:8px 12px;text-align:left;
+  font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#64748b;
+  border-bottom:1px solid #e2e8f0}
+.pdf-tabela td{padding:8px 12px;border-bottom:1px solid #f1f5f9;vertical-align:middle}
+.pdf-tabela tr:last-child td{border-bottom:none}
+.pdf-conformidade-bar{height:8px;border-radius:4px;background:#e2e8f0;margin-top:3px}
+.pdf-conf-fill{height:8px;border-radius:4px}
+.pdf-evidencias-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px}
+.pdf-evidencia{border:1px solid #e2e8f0;border-radius:8px;overflow:hidden}
+.pdf-ev-img{width:100%;height:100px;object-fit:cover;background:#f1f5f9}
+.pdf-ev-info{padding:8px;font-size:10px}
+.pdf-ev-titulo{font-weight:700;color:#0f172a;margin-bottom:2px}
+.pdf-ev-meta {color:#64748b;line-height:1.4}
+.pdf-assinaturas{
+  display:grid;grid-template-columns:1fr 1fr;gap:40px;margin-top:32px;padding-top:16px;
+  border-top:1.5px solid #e2e8f0
+}
+.pdf-assin{text-align:center}
+.pdf-assin-linha{border-top:1px solid #94a3b8;padding-top:6px;margin-top:30px;font-size:11px;color:#64748b}
+
+/* Bloco de assinatura digital */
+.pdf-assin-digital{
+  margin-top:28px;border:1.5px solid #e2e8f0;border-radius:10px;padding:16px 18px;
+  background:#f8fafc;text-align:left
+}
+.pdf-adg-titulo{
+  font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;
+  color:#64748b;margin-bottom:10px;display:flex;align-items:center;gap:6px
+}
+.pdf-adg-titulo::before{
+  content:'';display:inline-block;width:8px;height:8px;
+  border-radius:50%;background:#16a34a;flex-shrink:0
+}
+.pdf-adg-nome{font-size:15px;font-weight:900;color:#0f172a;margin-bottom:2px}
+.pdf-adg-cargo{font-size:12px;color:#475569;margin-bottom:10px}
+.pdf-adg-hash-wrap{
+  background:#0f172a;border-radius:8px;padding:10px 12px;margin-bottom:8px
+}
+.pdf-adg-hash-label{font-size:9px;font-weight:700;color:#64748b;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px}
+.pdf-adg-hash{
+  font-family:'Courier New',monospace;font-size:10px;color:#86efac;
+  word-break:break-all;line-height:1.4
+}
+.pdf-adg-meta{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px}
+.pdf-adg-meta-item{font-size:10px;color:#64748b;line-height:1.4}
+.pdf-adg-meta-item strong{color:#334155;display:block}
+.pdf-adg-url{
+  font-size:9px;color:#2563eb;margin-top:8px;word-break:break-all;
+  font-family:'Courier New',monospace
+}
+
+/* ── Modal ───────────────────────────────────────────────── */
+.modal-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:1000;
+  display:none;align-items:center;justify-content:center
+}
+.modal-overlay.visivel{display:flex}
+.modal{
+  background:var(--card);border-radius:16px;padding:28px;max-width:480px;width:90%;
+  box-shadow:0 20px 60px rgba(0,0,0,.2)
+}
+.modal h3{font-size:18px;font-weight:700;margin-bottom:8px}
+.modal p{font-size:14px;color:var(--texto-sub);margin-bottom:20px;line-height:1.5}
+.modal-acoes{display:flex;gap:10px;justify-content:flex-end}
+textarea.form-ctrl{
+  width:100%;padding:10px 12px;border-radius:8px;border:1px solid var(--borda);
+  font-size:13px;resize:vertical;min-height:80px;font-family:inherit;
+  color:var(--texto);outline:none;margin-bottom:14px
+}
+textarea.form-ctrl:focus{border-color:var(--azul)}
+
+/* ── Utilitários ─────────────────────────────────────────── */
+.flex{display:flex}.gap-2{gap:8px}.gap-3{gap:12px}.items-center{align-items:center}
+.justify-between{justify-content:space-between}.ml-auto{margin-left:auto}
+.text-sm{font-size:13px}.text-xs{font-size:11px}.font-bold{font-weight:700}
+.text-muted{color:var(--texto-sub)}
+.pulse{animation:pulso 2s ease-in-out infinite}
+@keyframes pulso{0%,100%{opacity:1}50%{opacity:.5}}
+/* Copyright sidebar */
+.sidebar-copyright{
+  padding:8px 16px 14px;
+  font-size:9px;color:rgba(255,255,255,.22);line-height:1.6;text-align:center;
+  border-top:1px solid rgba(255,255,255,.05)
+}
+.sidebar-copyright strong{color:rgba(255,255,255,.38);font-weight:700}
+
+/* Scroll suave */
+.content::-webkit-scrollbar{width:4px}
+.content::-webkit-scrollbar-track{background:transparent}
+.content::-webkit-scrollbar-thumb{background:var(--borda);border-radius:2px}
+
+/* ══════════════════════════════════════════════════════════
+   TELA DE LOGIN
+══════════════════════════════════════════════════════════ */
+#login-screen{
+  position:fixed;inset:0;z-index:9000;
+  background:#020617;
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Inter','Segoe UI',sans-serif
+}
+.login-bg-img{
+  position:absolute;inset:0;
+  background:url('https://images.unsplash.com/photo-1486325212027-8081e485255e?w=1200&q=60&fit=crop') center/cover;
+  opacity:.12
+}
+.login-card{
+  position:relative;z-index:1;
+  background:rgba(255,255,255,.04);
+  border:1px solid rgba(255,255,255,.1);
+  border-radius:20px;padding:40px;
+  width:100%;max-width:440px;
+  backdrop-filter:blur(16px);
+  box-shadow:0 24px 80px rgba(0,0,0,.5)
+}
+.login-card-logo{
+  display:flex;align-items:center;gap:14px;margin-bottom:28px
+}
+.login-card-logo-icon{
+  width:50px;height:50px;border-radius:14px;
+  background:linear-gradient(135deg,#1d4ed8,#7c3aed);
+  display:flex;align-items:center;justify-content:center;flex-shrink:0
+}
+.login-card-logo-icon svg{width:26px;height:26px;stroke:#fff;stroke-width:1.8}
+.login-card-nome{font-size:22px;font-weight:900;color:#fff}
+.login-card-sub {font-size:12px;color:rgba(255,255,255,.4);margin-top:2px}
+.login-label{
+  display:block;font-size:11px;font-weight:700;
+  text-transform:uppercase;letter-spacing:.08em;
+  color:rgba(255,255,255,.45);margin-bottom:6px
+}
+.login-input-wrap{position:relative;margin-bottom:14px}
+.login-input-icon{
+  position:absolute;left:14px;top:50%;transform:translateY(-50%);
+  color:rgba(255,255,255,.3)
+}
+.login-input-icon svg{width:17px;height:17px}
+.login-input{
+  width:100%;padding:14px 14px 14px 42px;
+  background:rgba(255,255,255,.06);
+  border:1.5px solid rgba(255,255,255,.1);
+  border-radius:12px;color:#fff;font-size:15px;
+  font-family:inherit;outline:none;transition:border .18s
+}
+.login-input:focus{border-color:rgba(99,102,241,.6);background:rgba(255,255,255,.09)}
+.login-input::placeholder{color:rgba(255,255,255,.25)}
+.login-btn{
+  width:100%;padding:15px;border:none;border-radius:12px;
+  background:linear-gradient(135deg,#1d4ed8,#4f46e5);
+  color:#fff;font-size:16px;font-weight:800;cursor:pointer;
+  font-family:inherit;margin-top:4px;
+  box-shadow:0 4px 18px rgba(37,99,235,.4);transition:filter .15s,transform .1s
+}
+.login-btn:hover{filter:brightness(1.1)}
+.login-btn:active{transform:scale(.97)}
+.login-erro{
+  background:rgba(220,38,38,.18);border:1px solid rgba(220,38,38,.35);
+  border-radius:10px;padding:10px 14px;font-size:13px;font-weight:600;
+  color:#fca5a5;margin-bottom:14px;display:none
+}
+.login-erro.show{display:block}
+.login-divider{
+  display:flex;align-items:center;gap:12px;margin:20px 0 16px
+}
+.login-divider::before,.login-divider::after{content:'';flex:1;height:1px;background:rgba(255,255,255,.08)}
+.login-divider span{font-size:11px;color:rgba(255,255,255,.3);white-space:nowrap}
+.login-users-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.login-user-card{
+  background:rgba(255,255,255,.05);border-radius:12px;
+  padding:10px 6px;text-align:center;cursor:pointer;
+  border:1.5px solid transparent;transition:all .14s
+}
+.login-user-card:hover{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.15)}
+.login-user-card:active{transform:scale(.92)}
+.login-user-card img{
+  width:46px;height:46px;border-radius:50%;object-fit:cover;
+  border:2px solid rgba(255,255,255,.15);display:block;
+  margin:0 auto 7px
+}
+.login-user-name{font-size:10px;font-weight:700;color:#e2e8f0;line-height:1.2}
+.login-user-role{font-size:9px;color:rgba(255,255,255,.4);margin-top:2px}
+.login-perfil-tag{
+  display:inline-block;font-size:9px;font-weight:700;
+  padding:2px 6px;border-radius:5px;margin-top:4px
+}
+.tag-admin {background:rgba(124,58,237,.3);color:#c4b5fd}
+.tag-super {background:rgba(220,38,38,.25);color:#fca5a5}
+.tag-fiscal{background:rgba(22,163,74,.25);color:#86efac}
+</style>
+</head>
+<body>
+
+<!-- ════════════════════════════════════════════════════════
+     TELA DE LOGIN
+════════════════════════════════════════════════════════ -->
+<div id="login-screen">
+  <div class="login-bg-img"></div>
+  <div class="login-card">
+
+    <div class="login-card-logo">
+      <div class="login-card-logo-icon">
+        <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9,22 9,12 15,12 15,22"/></svg>
+      </div>
+      <div>
+        <div class="login-card-nome">CondoGest</div>
+        <div class="login-card-sub">Painel Administrativo · ronda.prointegraserv.com.br</div>
+      </div>
+    </div>
+
+    <div id="login-erro" class="login-erro">E-mail ou senha incorretos.</div>
+
+    <form onsubmit="adminLogin(event)">
+      <label class="login-label">E-mail</label>
+      <div class="login-input-wrap">
+        <span class="login-input-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+        </span>
+        <input id="adm-email" class="login-input" type="email" inputmode="email"
+               placeholder="email@prointegraserv.com.br" autocomplete="email" autocapitalize="none">
+      </div>
+
+      <label class="login-label">Senha</label>
+      <div class="login-input-wrap">
+        <span class="login-input-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect width="18" height="11" x="3" y="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        </span>
+        <input id="adm-senha" class="login-input" type="password"
+               placeholder="••••••••" autocomplete="current-password">
+      </div>
+
+      <button type="submit" class="login-btn">Entrar no Painel</button>
+    </form>
+
+    <div class="login-divider"><span>acesso rápido</span></div>
+
+    <div class="login-users-grid" id="login-users-grid"></div>
+
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════════
+     SIDEBAR
+════════════════════════════════════════════════════════ -->
+<nav class="sidebar">
+  <div class="sidebar-logo" style="padding:16px 14px 14px">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 200" width="152" height="95" fill="none" style="display:block;margin:0 auto">
+      <defs>
+        <linearGradient id="aGlobe" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#4fc3f7"/><stop offset="100%" stop-color="#1565c0"/></linearGradient>
+        <linearGradient id="aGear" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#b0bec5"/><stop offset="100%" stop-color="#607d8b"/></linearGradient>
+        <linearGradient id="aCirc" x1="0%" y1="0%" x2="100%" y2="0%"><stop offset="0%" stop-color="#7c3aed"/><stop offset="100%" stop-color="#a855f7"/></linearGradient>
+      </defs>
+      <circle cx="82" cy="82" r="54" stroke="url(#aGlobe)" stroke-width="4" fill="none"/>
+      <ellipse cx="82" cy="82" rx="54" ry="20" stroke="url(#aGlobe)" stroke-width="2.2" fill="none"/>
+      <ellipse cx="82" cy="82" rx="54" ry="38" stroke="url(#aGlobe)" stroke-width="1.5" fill="none"/>
+      <line x1="82" y1="28" x2="82" y2="136" stroke="url(#aGlobe)" stroke-width="2"/>
+      <line x1="28" y1="82" x2="136" y2="82" stroke="url(#aGlobe)" stroke-width="2"/>
+      <line x1="38" y1="50" x2="126" y2="50" stroke="url(#aGlobe)" stroke-width="1.2" opacity=".6"/>
+      <line x1="38" y1="114" x2="126" y2="114" stroke="url(#aGlobe)" stroke-width="1.2" opacity=".6"/>
+      <g transform="translate(90,88)">
+        <path d="M0,-34 L5,-34 L8,-28 A30,30 0 0,1 16,-22 L22,-26 L26,-22 L28,-16 A30,30 0 0,1 30,-8 L34,-5 L34,5 L30,8 A30,30 0 0,1 28,16 L26,22 L22,26 L16,22 A30,30 0 0,1 8,28 L5,34 L-5,34 L-8,28 A30,30 0 0,1 -16,22 L-22,26 L-26,22 L-28,16 A30,30 0 0,1 -30,8 L-34,5 L-34,-5 L-30,-8 A30,30 0 0,1 -28,-16 L-26,-22 L-22,-26 L-16,-22 A30,30 0 0,1 -8,-28 L-5,-34 Z" fill="url(#aGear)" opacity=".95"/>
+        <circle r="20" fill="#ede9fe"/>
+        <polyline points="-9,1 -2,9 11,-8" stroke="#7c3aed" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+      </g>
+      <line x1="124" y1="78" x2="162" y2="78" stroke="url(#aCirc)" stroke-width="3" stroke-linecap="round"/>
+      <polyline points="142,78 142,60 175,60" stroke="url(#aCirc)" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+      <polyline points="154,78 154,96 180,96" stroke="url(#aCirc)" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+      <circle cx="175" cy="60" r="5" fill="url(#aCirc)"/>
+      <circle cx="180" cy="96" r="5" fill="url(#aCirc)"/>
+      <text x="28" y="166" font-family="'Inter','Segoe UI',Arial,sans-serif" font-size="32" font-weight="800" fill="#fff" letter-spacing="-.5">ProIntegra</text>
+      <text x="55" y="188" font-family="'Inter','Segoe UI',Arial,sans-serif" font-size="15" font-weight="500" fill="rgba(255,255,255,.45)" letter-spacing="4">SERVIÇOS</text>
+    </svg>
+    <div style="text-align:center;margin-top:6px;padding-top:6px;border-top:1px solid rgba(255,255,255,.08)">
+      <div class="logo-nome" style="font-size:13px;letter-spacing:.02em">CondoGest</div>
+      <div class="logo-url" style="font-size:9px">ronda.prointegraserv.com.br</div>
+    </div>
+  </div>
+
+  <div class="sidebar-nav">
+    <div class="nav-section">Principal</div>
+    <div class="nav-item ativo" onclick="nav('dashboard')">
+      <span class="nav-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg></span>
+      Dashboard
+    </div>
+    <div class="nav-item" onclick="nav('rondas')">
+      <span class="nav-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></span>
+      Rondas em Tempo Real
+    </div>
+    <div class="nav-item" onclick="nav('triagem')">
+      <span class="nav-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>
+      Central de Triagem
+      <span class="badge badge-vermelho ml-auto" style="font-size:10px" id="badge-nav-inc">7</span>
+    </div>
+
+    <div class="nav-section" style="margin-top:8px">Relatórios</div>
+    <div class="nav-item" onclick="nav('relatorios')">
+      <span class="nav-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg></span>
+      Emitir Relatório PDF
+    </div>
+
+    <div class="nav-section" style="margin-top:8px">Sistema</div>
+    <div class="nav-item" onclick="window.open('/mobile/','_blank')">
+      <span class="nav-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg></span>
+      App Mobile
+    </div>
+    <div class="nav-item" onclick="nav('configuracoes')">
+      <span class="nav-icon"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span>
+      Configurações
+    </div>
+  </div>
+
+  <div class="sidebar-footer">
+    <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=80&h=80&fit=crop&crop=face" alt="Iran Feliciano"
+         onerror="this.src='https://ui-avatars.com/api/?name=Iran+Feliciano&background=7c3aed&color=fff&size=80'">
+    <div class="sidebar-user">
+      <div class="sidebar-user-name" id="sb-user-name">Iran Feliciano</div>
+      <div class="sidebar-user-role" id="sb-user-role">Super Administrador</div>
+    </div>
+  </div>
+  <div class="sidebar-copyright">
+    <strong>CondoGest</strong> &copy; 2025<br>
+    Patente ProIntegra Serviços<br>
+    CNPJ 31.495.586/0001-36<br>
+    Desenvolvido pela ProIntegra
+  </div>
+</nav>
+
+<!-- ════════════════════════════════════════════════════════
+     MAIN
+════════════════════════════════════════════════════════ -->
+<div class="main">
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div class="topbar-titulo" id="topbar-titulo">Dashboard</div>
+    <div class="topbar-acoes">
+      <span class="topbar-data" id="topbar-data"></span>
+      <button class="btn-notif">🔔<span class="badge-notif"></span></button>
+    </div>
+  </div>
+
+  <!-- CONTEÚDO -->
+  <div class="content">
+
+    <!-- ─── SECTION: DASHBOARD ─────────────────────────────── -->
+    <div id="sec-dashboard" class="section ativa">
+
+      <!-- KPIs -->
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <div class="kpi-icon verde">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+          </div>
+          <div class="kpi-info">
+            <div class="kpi-label">Conformidade Geral</div>
+            <div class="kpi-valor">87,4%</div>
+            <div class="kpi-delta delta-up">+2,1% vs ontem</div>
+          </div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon azul">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          </div>
+          <div class="kpi-info">
+            <div class="kpi-label">Rondas Hoje</div>
+            <div class="kpi-valor">12</div>
+            <div class="kpi-delta delta-up">+3 vs ontem</div>
+          </div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon amarelo">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          </div>
+          <div class="kpi-info">
+            <div class="kpi-label">Incidentes Abertos</div>
+            <div class="kpi-valor">7</div>
+            <div class="kpi-delta delta-down">+2 desde ontem</div>
+          </div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon vermelho">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+          </div>
+          <div class="kpi-info">
+            <div class="kpi-label">Alertas de Pânico</div>
+            <div class="kpi-valor">1</div>
+            <div class="kpi-delta text-muted">Últimas 24h</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- GRÁFICOS -->
+      <div class="chart-grid">
+        <div class="chart-card">
+          <div class="chart-titulo">Tendência de Falhas — Últimos 30 dias</div>
+          <div class="chart-wrap"><canvas id="chart-tendencia"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-titulo">Falhas por Categoria</div>
+          <div class="chart-wrap"><canvas id="chart-categorias"></canvas></div>
+        </div>
+      </div>
+
+      <!-- SEGUNDA LINHA DE GRÁFICOS -->
+      <div class="chart-grid" style="grid-template-columns:1fr 1fr;margin-bottom:0">
+        <div class="chart-card">
+          <div class="chart-titulo">SLA de Resolução (dias)</div>
+          <div class="chart-wrap"><canvas id="chart-sla"></canvas></div>
+        </div>
+        <div class="heat-card">
+          <div class="chart-titulo">Mapa de Calor — Locais Críticos</div>
+          <div class="heat-grid" id="heat-grid"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── SECTION: RONDAS ─────────────────────────────────── -->
+    <div id="sec-rondas" class="section">
+      <div class="tabela-card">
+        <div class="tabela-header">
+          <div class="tabela-titulo">🔄 Rondas em Andamento</div>
+          <div class="flex gap-2 items-center">
+            <span class="text-xs text-muted pulse">● Atualiza automaticamente</span>
+            <button class="btn-acao secundario" onclick="atualizarRondas()">↺ Atualizar</button>
+          </div>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Fiscal</th><th>Turno</th><th>Início</th>
+              <th>Tempo Decorrido</th><th>Progresso</th>
+              <th>Conformidade</th><th>Status</th><th>Ação</th>
+            </tr>
+          </thead>
+          <tbody id="rondas-tbody"></tbody>
+        </table>
+      </div>
+
+      <div class="tabela-card">
+        <div class="tabela-header">
+          <div class="tabela-titulo">📋 Histórico de Rondas — Hoje</div>
+          <button class="btn-acao primario" onclick="exportarHistorico()">⬇ Exportar CSV</button>
+        </div>
+        <table>
+          <thead>
+            <tr><th>Fiscal</th><th>Período</th><th>Turno</th><th>Itens OK</th><th>Itens NOK</th><th>Conformidade</th><th>Status</th></tr>
+          </thead>
+          <tbody id="historico-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ─── SECTION: TRIAGEM ─────────────────────────────────── -->
+    <div id="sec-triagem" class="section">
+      <div class="triagem-grid">
+        <!-- Lista de incidentes -->
+        <div>
+          <div class="flex justify-between items-center" style="margin-bottom:12px">
+            <div class="font-bold" style="font-size:14px">Incidentes Abertos</div>
+            <select id="filtro-prioridade" onchange="filtrarIncidentes()" style="padding:6px 10px;border-radius:7px;border:1px solid var(--borda);font-size:12px">
+              <option value="">Todas prioridades</option>
+              <option value="CRITICA">Crítica</option>
+              <option value="ALTA">Alta</option>
+              <option value="MEDIA">Média</option>
+              <option value="BAIXA">Baixa</option>
+            </select>
+          </div>
+          <div class="inc-lista" id="inc-lista"></div>
+        </div>
+        <!-- Viewer -->
+        <div class="viewer-card" id="viewer-card">
+          <div class="viewer-vazia">
+            <div class="icone">🖼️</div>
+            <p>Clique em um incidente para visualizar a foto e ouvir o áudio do fiscal.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ─── SECTION: RELATÓRIOS ─────────────────────────────── -->
+    <div id="sec-relatorios" class="section">
+      <div class="relatorio-config">
+        <div class="config-titulo">⚙️ Configurar Relatório</div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Período — De</label>
+            <input type="date" id="rel-de" value="">
+          </div>
+          <div class="form-group">
+            <label>Período — Até</label>
+            <input type="date" id="rel-ate" value="">
+          </div>
+          <div class="form-group">
+            <label>Tipo de Checklist</label>
+            <select id="rel-tipo">
+              <option value="">Todos</option>
+              <option>Inspeção de Limpeza</option>
+              <option>Inspeção de Segurança</option>
+              <option>Inspeção de Estrutura</option>
+              <option>Inspeção de Incêndio</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Fiscal</label>
+            <select id="rel-fiscal">
+              <option value="">Todos os Fiscais</option>
+              <option>Iran Feliciano</option>
+              <option>Fiscal de Ronda</option>
+              <option>ASG Limpeza</option>
+              <option>Administradora</option>
+              <option>Síndico</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Setor</label>
+            <select id="rel-setor">
+              <option value="">Todos os Setores</option>
+              <option>Garagem — Bloco A</option>
+              <option>Recepção Principal</option>
+              <option>Portaria</option>
+              <option>Elevadores</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Incluir</label>
+            <select id="rel-incluir">
+              <option>Fotos + Dados Completos</option>
+              <option>Apenas Resumo Estatístico</option>
+              <option>Apenas Incidentes</option>
+            </select>
+          </div>
+        </div>
+        <div class="rel-acoes">
+          <button class="btn-acao primario" onclick="gerarPreview()">👁 Visualizar Prévia</button>
+          <button class="btn-acao secundario" onclick="exportarPDF()" id="btn-exportar-pdf" style="display:none">
+            ⬇ Exportar PDF
+          </button>
+        </div>
+      </div>
+
+      <!-- Preview do PDF -->
+      <div class="preview-card" id="preview-container" style="display:none">
+        <div class="tabela-header">
+          <div class="tabela-titulo">📄 Prévia do Relatório</div>
+          <button class="btn-acao primario" onclick="exportarPDF()">⬇ Baixar PDF</button>
+        </div>
+        <div id="pdf-preview"></div>
+      </div>
+    </div>
+
+    <!-- ─── SECTION: CONFIGURAÇÕES (placeholder) ─────────────── -->
+    <div id="sec-configuracoes" class="section">
+      <div class="relatorio-config">
+        <div class="config-titulo">⚙️ Configurações do Sistema</div>
+        <p class="text-muted text-sm">Módulo em desenvolvimento. Acesse via API REST em <strong>https://ronda.prointegraserv.com.br/api/v1/admin/config</strong></p>
+      </div>
+    </div>
+
+  </div><!-- /content -->
+</div><!-- /main -->
+
+<!-- ════════════════════════════════════════════════════════
+     MODAL OS
+════════════════════════════════════════════════════════ -->
+<div class="modal-overlay" id="modal-os">
+  <div class="modal">
+    <h3>📋 Despachar Ordem de Serviço</h3>
+    <p id="modal-os-desc">Criar OS vinculada ao incidente selecionado.</p>
+    <textarea class="form-ctrl" id="os-descricao" placeholder="Descreva a ação necessária..."></textarea>
+    <div class="form-group" style="margin-bottom:14px">
+      <label>Atribuir para</label>
+      <select class="form-ctrl" id="os-atribuir" style="padding:9px 12px;border-radius:8px;border:1px solid var(--borda);font-size:13px;width:100%;margin-top:6px">
+        <option>Manutenção Elétrica</option>
+        <option>Equipe de Limpeza</option>
+        <option>Manutenção Hidráulica</option>
+        <option>Brigada de Incêndio</option>
+        <option>Segurança Patrimonial</option>
+      </select>
+    </div>
+    <div class="modal-acoes">
+      <button class="btn-acao secundario" onclick="fecharModal()">Cancelar</button>
+      <button class="btn-acao primario" onclick="confirmarOS()">✅ Despachar OS</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ──────────────────────────────────────────────────────────
+   CONFIG
+────────────────────────────────────────────────────────── */
+const BASE_URL = 'https://ronda.prointegraserv.com.br';
+const API      = BASE_URL + '/api/v1';
+
+/* ─── USUÁRIOS DO SISTEMA ─────────────────────────────── */
+const ADM_USERS = {
+  'iran@prointegraserv.com.br':          {senha:'iran2025',    nome:'Iran Feliciano',  cargo:'Super Administrador', perfil:'superadmin',
+    foto:'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=80&h=80&fit=crop&crop=face', tag:'tag-super', tagLabel:'Super Admin'},
+  'administradora@prointegraserv.com.br':{senha:'admin2025',   nome:'Administradora',  cargo:'Administradora',      perfil:'admin',
+    foto:'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=80&h=80&fit=crop&crop=face', tag:'tag-admin', tagLabel:'Admin'},
+  'sindico@prointegraserv.com.br':       {senha:'sindico2025', nome:'Síndico',          cargo:'Síndico do Condomínio',perfil:'admin',
+    foto:'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop&crop=face', tag:'tag-admin', tagLabel:'Síndico'},
+  'ronda@prointegraserv.com.br':         {senha:'ronda2025',   nome:'Fiscal de Ronda', cargo:'Fiscal de Piso',      perfil:'fiscal',
+    foto:'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=80&h=80&fit=crop&crop=face', tag:'tag-fiscal', tagLabel:'Fiscal'},
+  'limpeza@prointegraserv.com.br':       {senha:'limpeza2025', nome:'ASG Limpeza',      cargo:'Auxiliar de Limpeza', perfil:'fiscal',
+    foto:'https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=80&h=80&fit=crop&crop=face', tag:'tag-fiscal', tagLabel:'ASG'},
+};
+
+/* ─── AUTENTICAÇÃO ADMIN ──────────────────────────────── */
+(function initLogin(){
+  // Verifica sessão existente
+  const sess = sessionStorage.getItem('cg_adm_user');
+  if(sess){
+    ocultarLogin(JSON.parse(sess));
+    return;
+  }
+  // Renderiza cards de acesso rápido
+  const grid = document.getElementById('login-users-grid');
+  if(!grid) return;
+  grid.innerHTML = Object.entries(ADM_USERS).map(([email,u])=>`
+    <div class="login-user-card" onclick="quickAdminLogin('${email}')">
+      <img src="${u.foto}" alt="${u.nome}"
+           onerror="this.src='https://ui-avatars.com/api/?name=${encodeURIComponent(u.nome)}&background=1d4ed8&color=fff&size=80'">
+      <div class="login-user-name">${u.nome.split(' ')[0]}</div>
+      <div class="login-user-role">${u.cargo}</div>
+      <span class="login-perfil-tag ${u.tag}">${u.tagLabel}</span>
+    </div>`).join('');
+})();
+
+function adminLogin(e){
+  e.preventDefault();
+  const email = document.getElementById('adm-email').value.trim().toLowerCase();
+  const senha = document.getElementById('adm-senha').value;
+  const u = ADM_USERS[email];
+  const erroEl = document.getElementById('login-erro');
+  if(!u || u.senha !== senha){
+    erroEl.classList.add('show');
+    document.getElementById('adm-senha').value = '';
+    setTimeout(()=>erroEl.classList.remove('show'), 3500);
+    return;
+  }
+  entrarAdmin(email, u);
+}
+
+function quickAdminLogin(email){
+  const u = ADM_USERS[email];
+  document.getElementById('adm-email').value = email;
+  entrarAdmin(email, u);
+}
+
+function entrarAdmin(email, u){
+  const sess = {email, ...u};
+  sessionStorage.setItem('cg_adm_user', JSON.stringify(sess));
+  ocultarLogin(sess);
+}
+
+function ocultarLogin(sess){
+  const el = document.getElementById('login-screen');
+  if(el){ el.style.opacity='0'; el.style.transition='opacity .4s'; setTimeout(()=>el.style.display='none',400); }
+  // Atualiza sidebar com usuário logado
+  const imgEl = document.querySelector('.sidebar-footer img');
+  const nameEl = document.querySelector('.sidebar-user-name');
+  const roleEl = document.querySelector('.sidebar-user-role');
+  if(imgEl) imgEl.src = sess.foto;
+  if(nameEl) nameEl.textContent = sess.nome;
+  if(roleEl) roleEl.textContent = sess.cargo;
+  // Restringe menu para fiscais (view-only)
+  if(sess.perfil==='fiscal'){
+    document.querySelectorAll('.nav-item').forEach(el=>{
+      if(!el.textContent.includes('Dashboard')&&!el.textContent.includes('Rondas'))
+        el.style.opacity='.35';
+    });
+  }
+}
+
+/* ──────────────────────────────────────────────────────────
+   DADOS MOCK (substituir por fetch(API + '/...')  em produção)
+────────────────────────────────────────────────────────── */
+// Fotos reais via Unsplash / ui-avatars fallback
+const FOTOS={
+  ronda:'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=80&h=80&fit=crop&crop=face',
+  limpeza:'https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?w=80&h=80&fit=crop&crop=face',
+  sindico:'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=80&h=80&fit=crop&crop=face',
+  admin:'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=80&h=80&fit=crop&crop=face',
+  iran:'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=80&h=80&fit=crop&crop=face',
+};
+
+const RONDAS_ATIVAS = [
+  {id:'r1',fiscal:'Fiscal de Ronda',   foto:FOTOS.ronda,   turno:'Manhã',inicio:'07:02',
+   min:82, total:13,ok:11,nok:2,conf:84.6,status:'EM_ANDAMENTO'},
+  {id:'r2',fiscal:'ASG Limpeza',        foto:FOTOS.limpeza, turno:'Manhã',inicio:'07:15',
+   min:69, total:13,ok:8, nok:1,conf:88.9,status:'EM_ANDAMENTO'},
+  {id:'r3',fiscal:'Iran Feliciano',     foto:FOTOS.iran,    turno:'Manhã',inicio:'06:00',
+   min:142,total:13,ok:13,nok:0,conf:100, status:'CONCLUIDA'},
+  {id:'r4',fiscal:'Administradora',     foto:FOTOS.admin,   turno:'Tarde',inicio:'13:00',
+   min:12, total:13,ok:2, nok:0,conf:100, status:'EM_ANDAMENTO'},
+];
+
+const HISTORICO = [
+  {fiscal:'Iran Feliciano', de:'06:00',ate:'07:55',turno:'Manhã',ok:13,nok:0, conf:100,  status:'CONCLUIDA'},
+  {fiscal:'Fiscal de Ronda',de:'07:02',ate:'--',   turno:'Manhã',ok:11,nok:2, conf:84.6, status:'EM_ANDAMENTO'},
+  {fiscal:'ASG Limpeza',    de:'05:50',ate:'07:30',turno:'Manhã',ok:10,nok:3, conf:76.9, status:'INCOMPLETA'},
+  {fiscal:'Síndico',        de:'22:00',ate:'23:50',turno:'Noite',ok:12,nok:1, conf:92.3, status:'CONCLUIDA'},
+];
+
+const INCIDENTES = [
+  {id:'inc1',prioridade:'CRITICA',categoria:'Incêndio',  catCor:'#dc2626',item:'Extintor desaparecido — Escada CF',
+   local:'Escada Corta-Fogo — Bloco 1',fiscal:'Fiscal de Ronda',fiscalFoto:FOTOS.ronda,
+   hora:'08:23',fotos:1,audios:1,
+   fotoUrl:'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&h=400&fit=crop',
+   audioUrl:'',transcricao:'O extintor que ficava no corredor sumiu, a caixa está aberta e vazia'},
+  {id:'inc2',prioridade:'ALTA',   categoria:'Estrutura', catCor:'#d97706',item:'Elevador Social 1 parado',
+   local:'Elevador — Bloco 1',fiscal:'ASG Limpeza',fiscalFoto:FOTOS.limpeza,
+   hora:'08:47',fotos:2,audios:1,
+   fotoUrl:'https://images.unsplash.com/photo-1541888946425-d81bb19240f5?w=600&h=400&fit=crop',
+   audioUrl:'',transcricao:'Elevador com a porta travada aberta, botão não responde'},
+  {id:'inc3',prioridade:'ALTA',   categoria:'Segurança', catCor:'#1d4ed8',item:'Câmera da garagem com problema',
+   local:'Garagem — Nível -1',fiscal:'Fiscal de Ronda',fiscalFoto:FOTOS.ronda,
+   hora:'07:10',fotos:1,audios:1,
+   fotoUrl:'https://images.unsplash.com/photo-1558618047-f4e70e31cc8b?w=600&h=400&fit=crop',
+   audioUrl:'',transcricao:'Câmera do canto esquerdo da garagem piscando intermitentemente'},
+  {id:'inc4',prioridade:'MEDIA',  categoria:'Limpeza',   catCor:'#16a34a',item:'Lixeiras do térreo transbordando',
+   local:'Hall Térreo — Bloco 1',fiscal:'ASG Limpeza',fiscalFoto:FOTOS.limpeza,
+   hora:'13:18',fotos:1,audios:0,
+   fotoUrl:'https://images.unsplash.com/photo-1605600659908-0ef719419d41?w=600&h=400&fit=crop',
+   audioUrl:'',transcricao:''},
+  {id:'inc5',prioridade:'MEDIA',  categoria:'Estrutura', catCor:'#d97706',item:'Lâmpadas queimadas — Corredor 3',
+   local:'Corredor 3° Andar',fiscal:'Fiscal de Ronda',fiscalFoto:FOTOS.ronda,
+   hora:'08:55',fotos:1,audios:1,
+   fotoUrl:'https://images.unsplash.com/photo-1565814329452-e1efa11c5b89?w=600&h=400&fit=crop',
+   audioUrl:'',transcricao:'Três lâmpadas apagadas no corredor do terceiro andar'},
+  {id:'inc6',prioridade:'ALTA',   categoria:'Incêndio',  catCor:'#dc2626',item:'Porta Corta-Fogo travada aberta',
+   local:'Escada — 5° ao 7° Andar',fiscal:'Fiscal de Ronda',fiscalFoto:FOTOS.ronda,
+   hora:'09:30',fotos:2,audios:1,
+   fotoUrl:'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=600&h=400&fit=crop',
+   audioUrl:'',transcricao:'Porta corta-fogo travada aberta com calço de madeira'},
+  {id:'inc7',prioridade:'BAIXA',  categoria:'Limpeza',   catCor:'#16a34a',item:'Banheiro feminino — sabonete vazio',
+   local:'Banheiro Feminino — Térreo',fiscal:'ASG Limpeza',fiscalFoto:FOTOS.limpeza,
+   hora:'10:05',fotos:1,audios:0,
+   fotoUrl:'https://images.unsplash.com/photo-1552321554-5fefe8c9ef14?w=600&h=400&fit=crop',
+   audioUrl:'',transcricao:''},
+];
+
+const HEATMAP = [
+  {nome:'Escada Corta-Fogo B1', bloco:'B1',cnt:8,  nivel:3},
+  {nome:'Garagem Bloco A',       bloco:'GA',cnt:6,  nivel:2},
+  {nome:'Elevadores',            bloco:'-', cnt:5,  nivel:2},
+  {nome:'Corredor 3° Andar',     bloco:'1', cnt:4,  nivel:2},
+  {nome:'Hall Térreo',           bloco:'1', cnt:3,  nivel:1},
+  {nome:'Recepção Principal',    bloco:'-', cnt:2,  nivel:1},
+  {nome:'Portaria',              bloco:'-', cnt:1,  nivel:0},
+  {nome:'Banheiros',             bloco:'-', cnt:1,  nivel:0},
+];
+
+/* ──────────────────────────────────────────────────────────
+   INIT
+────────────────────────────────────────────────────────── */
+document.addEventListener('DOMContentLoaded',()=>{
+  atualizarData();
+  setInterval(atualizarData,60000);
+  // Datas padrão para relatório
+  const hoje=new Date(),ha30=new Date(hoje);ha30.setDate(ha30.getDate()-30);
+  document.getElementById('rel-de').value=ha30.toISOString().slice(0,10);
+  document.getElementById('rel-ate').value=hoje.toISOString().slice(0,10);
+
+  // Inicializa seção ativa
+  renderRondas(); renderHistorico(); renderIncidentes(); renderHeatmap();
+  setTimeout(()=>{iniciarCharts();},100);
+});
+
+function atualizarData(){
+  const d=new Date();
+  document.getElementById('topbar-data').textContent=
+    d.toLocaleDateString('pt-BR',{weekday:'short',day:'2-digit',month:'short',year:'numeric'})+
+    ' — '+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
+}
+
+/* ──────────────────────────────────────────────────────────
+   NAVEGAÇÃO
+────────────────────────────────────────────────────────── */
+const NOMES_SECAO = {dashboard:'Dashboard',rondas:'Rondas em Tempo Real',triagem:'Central de Triagem',relatorios:'Emitir Relatório PDF',configuracoes:'Configurações'};
+function nav(sec){
+  document.querySelectorAll('.nav-item').forEach(el=>el.classList.remove('ativo'));
+  event.currentTarget.classList.add('ativo');
+  document.querySelectorAll('.section').forEach(s=>s.classList.remove('ativa'));
+  document.getElementById('sec-'+sec).classList.add('ativa');
+  document.getElementById('topbar-titulo').textContent=NOMES_SECAO[sec]||sec;
+}
+
+/* ──────────────────────────────────────────────────────────
+   CHARTS
+────────────────────────────────────────────────────────── */
+function iniciarCharts(){
+  // Tendência de falhas 30 dias
+  const dias=Array.from({length:30},(_,i)=>{
+    const d=new Date();d.setDate(d.getDate()-29+i);
+    return d.getDate()+'/'+(d.getMonth()+1);
+  });
+  const falhas=dias.map(()=>Math.floor(Math.random()*8)+2);
+  new Chart(document.getElementById('chart-tendencia'),{
+    type:'line',
+    data:{labels:dias,datasets:[
+      {label:'Falhas registradas',data:falhas,borderColor:'#2563eb',
+       backgroundColor:'rgba(37,99,235,.08)',fill:true,tension:.35,
+       pointRadius:3,pointBackgroundColor:'#2563eb'},
+      {label:'Média móvel',data:falhas.map((_,i)=>Math.round(falhas.slice(Math.max(0,i-6),i+1).reduce((a,b)=>a+b,0)/Math.min(i+1,7)*10)/10),
+       borderColor:'#94a3b8',borderDash:[4,3],fill:false,tension:.35,pointRadius:0}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,position:'top',labels:{font:{size:11}}}},scales:{y:{beginAtZero:true,ticks:{font:{size:10}}},x:{ticks:{maxTicksLimit:10,font:{size:10}}}}}
+  });
+
+  // Categorias
+  new Chart(document.getElementById('chart-categorias'),{
+    type:'doughnut',
+    data:{labels:['Limpeza','Segurança','Estrutura','Incêndio'],
+      datasets:[{data:[8,14,22,11],backgroundColor:['#16a34a','#1d4ed8','#d97706','#dc2626'],
+        borderWidth:2,borderColor:'#fff'}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:'60%',
+      plugins:{legend:{position:'right',labels:{font:{size:11},boxWidth:12,padding:12}}}}
+  });
+
+  // SLA
+  new Chart(document.getElementById('chart-sla'),{
+    type:'bar',
+    data:{labels:['Crítica','Alta','Média','Baixa'],
+      datasets:[
+        {label:'SLA alvo (dias)',data:[0.5,1,3,7],backgroundColor:'rgba(37,99,235,.15)',borderColor:'#2563eb',borderWidth:1},
+        {label:'Média real',     data:[0.8,1.4,2.6,5.9],backgroundColor:['rgba(220,38,38,.7)','rgba(234,88,12,.7)','rgba(234,179,8,.7)','rgba(22,163,74,.7)'],borderWidth:0}
+      ]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:true,position:'top',labels:{font:{size:11}}}},
+      scales:{y:{beginAtZero:true,title:{display:true,text:'Dias',font:{size:10}},ticks:{font:{size:10}}},
+              x:{ticks:{font:{size:11}}}}}
+  });
+}
+
+/* ──────────────────────────────────────────────────────────
+   RONDAS
+────────────────────────────────────────────────────────── */
+function renderRondas(){
+  document.getElementById('rondas-tbody').innerHTML=RONDAS_ATIVAS
+    .filter(r=>r.status==='EM_ANDAMENTO')
+    .map(r=>{
+      const pct=Math.round((r.ok+r.nok)/r.total*100);
+      const confCor=r.conf>=90?'verde':r.conf>=70?'amarelo':'vermelho';
+      return `<tr>
+        <td><div class="fiscal-cell">
+          <img src="${r.foto}" alt="${r.fiscal}">
+          <div><div class="fiscal-cell-nome">${r.fiscal}</div>
+          <div class="fiscal-cell-sub">Turno ${r.turno}</div></div>
+        </div></td>
+        <td><span class="badge badge-azul">${r.turno}</span></td>
+        <td>${r.inicio}</td>
+        <td>${r.min >= 60 ? Math.floor(r.min/60)+'h '+r.min%60+'min' : r.min+' min'}</td>
+        <td>
+          <div class="text-xs text-muted">${r.ok+r.nok}/${r.total} itens</div>
+          <div class="progress-mini"><div class="progress-mini-fill" style="width:${pct}%"></div></div>
+        </td>
+        <td><span class="badge badge-${confCor}">${r.conf.toFixed(1)}%</span></td>
+        <td><span class="badge badge-verde pulse">● Em andamento</span></td>
+        <td><button class="btn-acao secundario" style="font-size:11px" onclick="verDetalhes('${r.id}')">Ver detalhes</button></td>
+      </tr>`;
+    }).join('');
+}
+
+function renderHistorico(){
+  document.getElementById('historico-tbody').innerHTML=HISTORICO.map(r=>{
+    const sc={CONCLUIDA:'verde',EM_ANDAMENTO:'azul',INCOMPLETA:'amarelo',CANCELADA:'vermelho'};
+    return `<tr>
+      <td>${r.fiscal}</td>
+      <td>${r.de} → ${r.ate}</td>
+      <td>${r.turno}</td>
+      <td style="color:var(--verde);font-weight:700">${r.ok}</td>
+      <td style="color:var(--vermelho);font-weight:700">${r.nok}</td>
+      <td><span class="badge badge-${r.conf>=85?'verde':'amarelo'}">${r.conf.toFixed(1)}%</span></td>
+      <td><span class="badge badge-${sc[r.status]||'cinza'}">${r.status.replace('_',' ')}</span></td>
+    </tr>`;
+  }).join('');
+}
+
+function atualizarRondas(){renderRondas();renderHistorico();}
+function exportarHistorico(){alert('Em produção: GET '+API+'/rondas/export?format=csv');}
+function verDetalhes(id){alert('Em produção: navegação para '+BASE_URL+'/admin/rondas/'+id);}
+
+/* ──────────────────────────────────────────────────────────
+   INCIDENTES
+────────────────────────────────────────────────────────── */
+let incSelecionado=null;
+
+function renderIncidentes(filtro=''){
+  const lista=INCIDENTES.filter(i=>!filtro||i.prioridade===filtro);
+  const prCls={CRITICA:'priori-critica',ALTA:'priori-alta',MEDIA:'priori-media',BAIXA:'priori-baixa'};
+  document.getElementById('inc-lista').innerHTML=lista.map(inc=>`
+    <div class="inc-card${inc.id===incSelecionado?' selecionado':''}" onclick="selecionarInc('${inc.id}')">
+      <div class="inc-topo">
+        <div class="inc-prioridade ${prCls[inc.prioridade]}"></div>
+        <span class="inc-categoria" style="color:${inc.catCor}">${inc.categoria}</span>
+        <span class="badge badge-${inc.prioridade==='CRITICA'?'vermelho':inc.prioridade==='ALTA'?'amarelo':'cinza'}" style="font-size:10px">${inc.prioridade}</span>
+        <span class="inc-hora">${inc.hora}</span>
+      </div>
+      <div class="inc-item">${inc.item}</div>
+      <div class="inc-local">📍 ${inc.local}</div>
+      <div class="inc-midias">
+        ${inc.fotos?`<span class="inc-midia-badge">📷 ${inc.fotos} foto${inc.fotos>1?'s':''}</span>`:''}
+        ${inc.audios?`<span class="inc-midia-badge">🎙️ ${inc.audios} áudio${inc.audios>1?'s':''}</span>`:''}
+      </div>
+    </div>`).join('');
+  document.getElementById('badge-nav-inc').textContent=lista.length;
+}
+
+function filtrarIncidentes(){
+  renderIncidentes(document.getElementById('filtro-prioridade').value);
+}
+
+function selecionarInc(id){
+  incSelecionado=id;
+  renderIncidentes(document.getElementById('filtro-prioridade').value);
+  const inc=INCIDENTES.find(i=>i.id===id);
+  if(!inc) return;
+  const v=document.getElementById('viewer-card');
+  const prBadge={CRITICA:'vermelho',ALTA:'amarelo',MEDIA:'cinza',BAIXA:'verde'};
+  v.innerHTML=`
+    <div class="viewer-header">
+      <div>
+        <div class="viewer-titulo">${inc.item}</div>
+        <div class="text-xs text-muted" style="margin-top:3px">
+          ${inc.local} · ${inc.fiscal} · ${inc.hora}
+        </div>
+      </div>
+      <span class="badge badge-${prBadge[inc.prioridade]}">${inc.prioridade}</span>
+    </div>
+    <div class="viewer-body">
+      <img class="viewer-foto" src="${inc.fotoUrl}" alt="Evidência"
+           onerror="this.style.background='#f1f5f9';this.style.height='100px'">
+      ${inc.audios?`
+      <div class="viewer-audio-section">
+        <h4>🎙️ Áudio do Fiscal</h4>
+        <audio controls ${inc.audioUrl?`src="${inc.audioUrl}"`:''}></audio>
+        ${inc.transcricao?`<div style="background:#f8fafc;border-radius:8px;padding:10px;margin-top:8px;font-size:12px;line-height:1.5;color:var(--texto-sub)">
+          <strong>Transcrição:</strong> ${inc.transcricao}</div>`:''}
+      </div>`:inc.transcricao?`<div style="background:#f8fafc;border-radius:8px;padding:12px;font-size:13px;line-height:1.5;color:var(--texto-sub)"><strong>Relato:</strong> ${inc.transcricao}</div>`:''}
+      <div class="viewer-meta">
+        <div class="meta-item"><div class="meta-label">Fiscal</div><div class="meta-valor">${inc.fiscal}</div></div>
+        <div class="meta-item"><div class="meta-label">Local</div><div class="meta-valor">${inc.local}</div></div>
+        <div class="meta-item"><div class="meta-label">Categoria</div><div class="meta-valor" style="color:${inc.catCor}">${inc.categoria}</div></div>
+        <div class="meta-item"><div class="meta-label">Registrado às</div><div class="meta-valor">${inc.hora}</div></div>
+      </div>
+    </div>
+    <div class="viewer-acoes">
+      <button class="btn-acao primario" onclick="abrirModalOS('${inc.id}')">📋 Despachar OS</button>
+      <button class="btn-acao verde" onclick="resolverInc('${inc.id}')">✅ Marcar Resolvido</button>
+      <button class="btn-acao vermelho-claro" onclick="descartarInc('${inc.id}')">🗑️ Descartar</button>
+    </div>`;
+}
+
+function abrirModalOS(id){
+  const inc=INCIDENTES.find(i=>i.id===id);
+  document.getElementById('modal-os-desc').textContent='Criando OS para: '+inc.item+' — '+inc.local;
+  document.getElementById('modal-os').classList.add('visivel');
+}
+function fecharModal(){document.getElementById('modal-os').classList.remove('visivel');}
+function confirmarOS(){
+  alert('OS despachada com sucesso!\nEm produção: POST '+API+'/ordens-servico');
+  fecharModal();
+}
+function resolverInc(id){
+  const idx=INCIDENTES.findIndex(i=>i.id===id);
+  if(idx>-1){INCIDENTES.splice(idx,1);}
+  incSelecionado=null;
+  document.getElementById('viewer-card').innerHTML='<div class="viewer-vazia"><div class="icone">✅</div><p>Incidente marcado como resolvido.</p></div>';
+  renderIncidentes(document.getElementById('filtro-prioridade').value);
+}
+function descartarInc(id){
+  if(!confirm('Descartar este incidente?')) return;
+  resolverInc(id);
+}
+
+/* ──────────────────────────────────────────────────────────
+   HEATMAP
+────────────────────────────────────────────────────────── */
+function renderHeatmap(){
+  document.getElementById('heat-grid').innerHTML=HEATMAP.map(h=>`
+    <div class="heat-cell heat-${h.nivel}">
+      <div class="heat-nome">${h.nome}</div>
+      <div class="heat-cnt">${h.cnt} falha${h.cnt!==1?'s':''} / 30 dias</div>
+    </div>`).join('');
+}
+
+/* ──────────────────────────────────────────────────────────
+   RELATÓRIO PDF
+────────────────────────────────────────────────────────── */
+function gerarPreview(){
+  const de =document.getElementById('rel-de').value;
+  const ate=document.getElementById('rel-ate').value;
+  const tipoRel=document.getElementById('rel-tipo').value||'Todos os Checklists';
+  const fiscal=document.getElementById('rel-fiscal').value||'Todos os Fiscais';
+  const deF =new Date(de+'T00:00').toLocaleDateString('pt-BR');
+  const ateF=new Date(ate+'T00:00').toLocaleDateString('pt-BR');
+
+  // Stats simulados
+  const stats={total:143,ok:125,nok:18,conf:87.4,abertos:7,resolvidos:11};
+
+  document.getElementById('pdf-preview').innerHTML=`
+<div id="pdf-preview-inner">
+  <!-- Cabeçalho -->
+  <div class="pdf-cabecalho">
+    <div class="pdf-logo-area">
+      <div class="pdf-logo-icon" style="width:44px;height:44px;border-radius:10px;background:linear-gradient(135deg,#1d4ed8,#7c3aed);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+        <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#fff" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9,22 9,12 15,12 15,22"/></svg>
+      </div>
+      <div>
+        <div class="pdf-empresa-nome">CondoGest</div>
+        <div class="pdf-empresa-sub">Sistema de Gestão de Rondas e Checklists<br>ronda.prointegraserv.com.br</div>
+        <div style="font-size:9px;color:#94a3b8;margin-top:2px">Patente ProIntegra Serviços · CNPJ 31.495.586/0001-36</div>
+      </div>
+    </div>
+    <div class="pdf-periodo">
+      <div class="pdf-periodo-label">Período do Relatório</div>
+      <div class="pdf-periodo-valor">${deF} → ${ateF}</div>
+      <div class="pdf-paginacao">Gerado em ${new Date().toLocaleString('pt-BR')} · Página 1 de 3</div>
+    </div>
+  </div>
+
+  <div class="pdf-titulo-relatorio">RELATÓRIO DE CONFORMIDADE — ${tipoRel.toUpperCase()}</div>
+
+  <!-- Stats -->
+  <div class="pdf-stats-grid">
+    <div class="pdf-stat verde">
+      <div class="pdf-stat-valor">${stats.conf}%</div>
+      <div class="pdf-stat-label">Conformidade Geral</div>
+    </div>
+    <div class="pdf-stat azul">
+      <div class="pdf-stat-valor">${stats.total}</div>
+      <div class="pdf-stat-label">Verificações</div>
+    </div>
+    <div class="pdf-stat amarelo">
+      <div class="pdf-stat-valor">${stats.nok}</div>
+      <div class="pdf-stat-label">Falhas Abertas</div>
+    </div>
+    <div class="pdf-stat${stats.resolvidos>0?' verde':' vermelho'}">
+      <div class="pdf-stat-valor">${stats.resolvidos}</div>
+      <div class="pdf-stat-label">Resolvidas</div>
+    </div>
+  </div>
+
+  <!-- Conformidade por categoria -->
+  <div class="pdf-secao-titulo">Conformidade por Categoria</div>
+  <table class="pdf-tabela">
+    <thead><tr><th>Categoria</th><th>Verificações</th><th>OK</th><th>Falhas</th><th>Conformidade</th><th>Barra</th></tr></thead>
+    <tbody>
+      ${[
+        {cat:'🧹 Limpeza',    total:36,ok:34,nok:2, conf:94.4,cor:'#16a34a'},
+        {cat:'🛡️ Segurança',  total:42,ok:36,nok:6, conf:85.7,cor:'#1d4ed8'},
+        {cat:'🔧 Estrutura',  total:41,ok:33,nok:8, conf:80.5,cor:'#d97706'},
+        {cat:'🔥 Incêndio',   total:24,ok:22,nok:2, conf:91.7,cor:'#dc2626'},
+      ].map(r=>`<tr>
+        <td style="font-weight:700">${r.cat}</td>
+        <td>${r.total}</td>
+        <td style="color:#166534;font-weight:700">${r.ok}</td>
+        <td style="color:#991b1b;font-weight:700">${r.nok}</td>
+        <td style="font-weight:700">${r.conf}%</td>
+        <td><div class="pdf-conformidade-bar"><div class="pdf-conf-fill" style="width:${r.conf}%;background:${r.cor}"></div></div></td>
+      </tr>`).join('')}
+    </tbody>
+  </table>
+
+  <!-- Ranking de fiscais -->
+  <div class="pdf-secao-titulo">Performance por Fiscal — ${fiscal}</div>
+  <table class="pdf-tabela">
+    <thead><tr><th>Fiscal</th><th>Cargo</th><th>Rondas</th><th>Itens OK</th><th>Itens NOK</th><th>Conformidade</th></tr></thead>
+    <tbody>
+      ${[
+        {n:'Iran Feliciano',  c:'Super Admin',r:24,ok:180,nok:3, conf:98.4},
+        {n:'Fiscal de Ronda', c:'Fiscal',     r:18,ok:120,nok:12,conf:90.9},
+        {n:'ASG Limpeza',     c:'ASG',         r:16,ok:109,nok:8, conf:93.2},
+        {n:'Administradora',  c:'Admin',        r:14,ok:92, nok:7, conf:92.9},
+        {n:'Síndico',         c:'Síndico',      r:10,ok:68, nok:5, conf:93.1},
+      ].map(f=>`<tr>
+        <td style="font-weight:700">${f.n}</td><td>${f.c}</td>
+        <td>${f.r}</td>
+        <td style="color:#166534;font-weight:700">${f.ok}</td>
+        <td style="color:#991b1b;font-weight:700">${f.nok}</td>
+        <td><span style="font-weight:800;color:${f.conf>=90?'#166534':f.conf>=80?'#854d0e':'#991b1b'}">${f.conf}%</span></td>
+      </tr>`).join('')}
+    </tbody>
+  </table>
+
+  <!-- Evidências fotográficas -->
+  <div class="pdf-secao-titulo">Evidências Fotográficas das Falhas</div>
+  <div class="pdf-evidencias-grid">
+    ${INCIDENTES.slice(0,6).map(inc=>`
+    <div class="pdf-evidencia">
+      <img class="pdf-ev-img" src="${inc.fotoUrl}" alt="${inc.item}" onerror="this.style.background='#f1f5f9'">
+      <div class="pdf-ev-info">
+        <div class="pdf-ev-titulo">${inc.item}</div>
+        <div class="pdf-ev-meta">${inc.local}<br>${inc.fiscal} · ${inc.hora}</div>
+      </div>
+    </div>`).join('')}
+  </div>
+
+  <!-- Assinaturas -->
+  <div class="pdf-assinaturas">
+    <div class="pdf-assin">
+      <div class="pdf-assin-linha">Síndico / Administrador<br>Condomínio Comercial</div>
+    </div>
+    <div class="pdf-assin">
+      <div class="pdf-assin-linha">Gerente de Facilities<br>ProIntegra Serviços</div>
+    </div>
+  </div>
+
+  <!-- Assinatura Digital -->
+  <div class="pdf-assin-digital" id="bloco-assinatura-digital">
+    <div class="pdf-adg-titulo">Assinatura Digital do Responsável</div>
+    <div class="pdf-adg-nome">Iran Feliciano</div>
+    <div class="pdf-adg-cargo">Gestor de Segurança e Fiscalização — ProIntegra Serviços</div>
+    <div class="pdf-adg-hash-wrap">
+      <div class="pdf-adg-hash-label">Hash SHA-256 do Documento</div>
+      <div class="pdf-adg-hash" id="pdf-hash-valor">gerando...</div>
+    </div>
+    <div class="pdf-adg-meta">
+      <div class="pdf-adg-meta-item"><strong>Assinado em</strong><span id="pdf-hash-ts">--</span></div>
+      <div class="pdf-adg-meta-item"><strong>Algoritmo</strong>SHA-256 · Web Crypto API</div>
+      <div class="pdf-adg-meta-item"><strong>E-mail</strong>iran@prointegraserv.com.br</div>
+      <div class="pdf-adg-meta-item"><strong>Status</strong><span style="color:#16a34a;font-weight:700">Válido</span></div>
+    </div>
+    <div class="pdf-adg-url" id="pdf-hash-url">Verificar: ronda.prointegraserv.com.br/verificar/...</div>
+  </div>
+  <!-- Rodapé de copyright no PDF -->
+  <div style="margin-top:20px;padding-top:10px;border-top:1px solid #e2e8f0;
+              display:flex;justify-content:space-between;align-items:center;font-size:9px;color:#94a3b8">
+    <span>&copy; 2025 ProIntegra Serviços · CNPJ 31.495.586/0001-36 · Desenvolvido pela ProIntegra</span>
+    <span>ronda.prointegraserv.com.br · Documento gerado eletronicamente</span>
+  </div>
+</div>`;
+
+  // Gera o hash SHA-256 de forma assíncrona e injeta no bloco
+  gerarHashRelatorio({de,ate,tipoRel,fiscal,stats}).then(({hash,ts})=>{
+    const el1=document.getElementById('pdf-hash-valor');
+    const el2=document.getElementById('pdf-hash-ts');
+    const el3=document.getElementById('pdf-hash-url');
+    if(el1) el1.textContent=hash;
+    if(el2) el2.textContent=ts;
+    if(el3) el3.textContent='Verificar: ronda.prointegraserv.com.br/verificar/'+hash.slice(0,32)+'...';
+  });
+
+  document.getElementById('preview-container').style.display='block';
+  document.getElementById('btn-exportar-pdf').style.display='inline-flex';
+  document.getElementById('preview-container').scrollIntoView({behavior:'smooth'});
+}
+
+/* Gera hash SHA-256 do conteúdo do relatório via Web Crypto API */
+async function gerarHashRelatorio(dados){
+  const ts = new Date().toLocaleString('pt-BR',{
+    day:'2-digit',month:'2-digit',year:'numeric',
+    hour:'2-digit',minute:'2-digit',second:'2-digit'
+  });
+  const payload = JSON.stringify({
+    responsavel:'Iran Feliciano',
+    email:'iran@prointegraserv.com.br',
+    cargo:'Gestor de Segurança e Fiscalização',
+    sistema:'CondoGest — ronda.prointegraserv.com.br',
+    timestamp: new Date().toISOString(),
+    ...dados
+  });
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(payload));
+  const hash = Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,'0')).join('');
+  return {hash, ts};
+}
+
+async function exportarPDF(){
+  const el=document.getElementById('pdf-preview-inner');
+  if(!el){alert('Gere a prévia primeiro.');return;}
+  const btn=document.getElementById('btn-exportar-pdf');
+  btn.textContent='⏳ Gerando PDF...';btn.disabled=true;
+  try{
+    const {jsPDF}=window.jspdf;
+    const canvas=await html2canvas(el,{scale:2,useCORS:true,logging:false});
+    const imgData=canvas.toDataURL('image/jpeg',0.92);
+    const pdf=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+    const W=pdf.internal.pageSize.getWidth();
+    const H=pdf.internal.pageSize.getHeight();
+    const ratio=canvas.height/canvas.width;
+    const imgH=W*ratio;
+    let posY=0;
+    while(posY<imgH){
+      if(posY>0) pdf.addPage();
+      pdf.addImage(imgData,'JPEG',0,-(posY)*(W/canvas.width*72/25.4>1?1:1),W,imgH);
+      // Cabeçalho e paginação em cada página
+      const pg=pdf.internal.getCurrentPageInfo().pageNumber;
+      const total=Math.ceil(imgH/H);
+      pdf.setFontSize(8);pdf.setTextColor(148,163,184);
+      pdf.text('CondoGest — ronda.prointegraserv.com.br',10,H-5);
+      pdf.text('Página '+pg+' de '+total,W-30,H-5);
+      posY+=H;
+    }
+    const hoje=new Date().toISOString().slice(0,10);
+    pdf.save('CondoGest_Relatorio_'+hoje+'.pdf');
+  }catch(e){
+    // Fallback: impressão nativa
+    const w=window.open('','_blank');
+    w.document.write('<html><head><title>Relatório CondoGest</title><style>body{margin:20px;font-family:sans-serif}img{max-width:100%}</style></head><body>');
+    w.document.write(document.getElementById('pdf-preview').innerHTML);
+    w.document.write('</body></html>');
+    w.document.close();
+    w.print();
+  }
+  btn.textContent='⬇ Exportar PDF';btn.disabled=false;
+}
+</script>
+</body>
+</html>

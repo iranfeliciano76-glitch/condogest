@@ -1,0 +1,12 @@
+{
+  "name": "condogest",
+  "version": "1.0.0",
+  "description": "CondoGest — Sistema de Rondas ProIntegra Serviços",
+  "engines": { "node": ">=18" },
+  "scripts": {
+    "dev": "vercel dev",
+    "start": "node server.js"
+  },
+  "dependencies": {},
+  "devDependencies": {}
+}

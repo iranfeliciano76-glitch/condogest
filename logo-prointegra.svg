@@ -1,0 +1,81 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 200" fill="none">
+  <defs>
+    <linearGradient id="globeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4fc3f7"/>
+      <stop offset="100%" stop-color="#1565c0"/>
+    </linearGradient>
+    <linearGradient id="gearGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#b0bec5"/>
+      <stop offset="100%" stop-color="#607d8b"/>
+    </linearGradient>
+    <linearGradient id="circuitGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#7c3aed"/>
+      <stop offset="100%" stop-color="#a855f7"/>
+    </linearGradient>
+    <linearGradient id="checkGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#6d28d9"/>
+      <stop offset="100%" stop-color="#7c3aed"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Globe outline circle -->
+  <circle cx="82" cy="82" r="54" stroke="url(#globeGrad)" stroke-width="4" fill="none"/>
+
+  <!-- Globe latitude lines -->
+  <ellipse cx="82" cy="82" rx="54" ry="20" stroke="url(#globeGrad)" stroke-width="2.2" fill="none"/>
+  <ellipse cx="82" cy="82" rx="54" ry="38" stroke="url(#globeGrad)" stroke-width="1.5" fill="none"/>
+
+  <!-- Globe vertical center line -->
+  <line x1="82" y1="28" x2="82" y2="136" stroke="url(#globeGrad)" stroke-width="2" />
+
+  <!-- Globe horizontal center line -->
+  <line x1="28" y1="82" x2="136" y2="82" stroke="url(#globeGrad)" stroke-width="2"/>
+
+  <!-- Cross-hair lines on globe -->
+  <line x1="38" y1="50" x2="126" y2="50" stroke="url(#globeGrad)" stroke-width="1.2" opacity="0.6"/>
+  <line x1="38" y1="114" x2="126" y2="114" stroke="url(#globeGrad)" stroke-width="1.2" opacity="0.6"/>
+
+  <!-- GEAR (overlapping globe center-right) -->
+  <!-- Gear teeth -->
+  <g transform="translate(90,88)">
+    <!-- Gear body -->
+    <path d="
+      M0,-34 L5,-34 L8,-28
+      A30,30 0 0,1 16,-22 L22,-26 L26,-22
+      L28,-16 A30,30 0 0,1 30,-8 L34,-5 L34,5
+      L30,8 A30,30 0 0,1 28,16 L26,22 L22,26
+      L16,22 A30,30 0 0,1 8,28 L5,34 L-5,34
+      L-8,28 A30,30 0 0,1 -16,22 L-22,26 L-26,22
+      L-28,16 A30,30 0 0,1 -30,8 L-34,5 L-34,-5
+      L-30,-8 A30,30 0 0,1 -28,-16 L-26,-22 L-22,-26
+      L-16,-22 A30,30 0 0,1 -8,-28 L-5,-34 Z
+    " fill="url(#gearGrad)" opacity="0.95"/>
+    <!-- Gear inner circle (white/light) -->
+    <circle r="20" fill="#eceff1"/>
+    <!-- Checkmark circle -->
+    <circle r="19" fill="#ede9fe"/>
+    <!-- Purple checkmark -->
+    <polyline points="-9,1 -2,9 11,-8" stroke="url(#checkGrad)" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  </g>
+
+  <!-- CIRCUIT LINES (purple, to the right) -->
+  <!-- Main horizontal line from gear -->
+  <line x1="124" y1="78" x2="162" y2="78" stroke="url(#circuitGrad)" stroke-width="3" stroke-linecap="round"/>
+  <!-- Branch up-right -->
+  <polyline points="142,78 142,60 175,60" stroke="url(#circuitGrad)" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <!-- Branch down-right -->
+  <polyline points="154,78 154,96 180,96" stroke="url(#circuitGrad)" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <!-- Bottom small branch -->
+  <polyline points="162,78 162,112 186,112" stroke="url(#circuitGrad)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" fill="none" opacity="0.7"/>
+
+  <!-- Circuit endpoints (circles) -->
+  <circle cx="175" cy="60" r="5" fill="url(#circuitGrad)"/>
+  <circle cx="180" cy="96" r="5" fill="url(#circuitGrad)"/>
+  <circle cx="186" cy="112" r="4" fill="url(#circuitGrad)" opacity="0.7"/>
+
+  <!-- TEXT: ProIntegra -->
+  <text x="28" y="166" font-family="'Segoe UI', Arial, sans-serif" font-size="32" font-weight="800" fill="#1a3a7a" letter-spacing="-0.5">ProIntegra</text>
+
+  <!-- TEXT: SERVIÇOS -->
+  <text x="55" y="188" font-family="'Segoe UI', Arial, sans-serif" font-size="15" font-weight="500" fill="#78909c" letter-spacing="4">SERVIÇOS</text>
+</svg>
